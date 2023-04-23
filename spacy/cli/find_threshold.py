@@ -217,10 +217,8 @@ def find_threshold(
         wasabi.msg.warn(
             title="All scores are identical. Verify that all settings are correct.",
             text=""
-            if (
-                not isinstance(pipe, MultiLabel_TextCategorizer)
-                or scores_key in ("cats_macro_f", "cats_micro_f")
-            )
+            if not isinstance(pipe, MultiLabel_TextCategorizer)
+            or scores_key in {"cats_macro_f", "cats_micro_f"}
             else "Use `cats_macro_f` or `cats_micro_f` when optimizing the threshold for `textcat_multilabel`.",
         )
 

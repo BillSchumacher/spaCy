@@ -2,59 +2,55 @@
 Tokenizer Exceptions.
 Source: https://forkortelse.dk/ and various others.
 """
+
 from ..tokenizer_exceptions import BASE_EXCEPTIONS
 from ...symbols import ORTH, NORM
 from ...util import update_exc
 
 
-_exc = {}
-
-# Abbreviations for weekdays "søn." (for "søndag") as well as "Tor." and "Tors."
-# (for "torsdag") are left out because they are ambiguous. The same is the case
-# for abbreviations "jul." and "Jul." ("juli").
-for exc_data in [
-    {ORTH: "Kbh.", NORM: "København"},
-    {ORTH: "jan.", NORM: "januar"},
-    {ORTH: "febr.", NORM: "februar"},
-    {ORTH: "feb.", NORM: "februar"},
-    {ORTH: "mar.", NORM: "marts"},
-    {ORTH: "apr.", NORM: "april"},
-    {ORTH: "jun.", NORM: "juni"},
-    {ORTH: "aug.", NORM: "august"},
-    {ORTH: "sept.", NORM: "september"},
-    {ORTH: "sep.", NORM: "september"},
-    {ORTH: "okt.", NORM: "oktober"},
-    {ORTH: "nov.", NORM: "november"},
-    {ORTH: "dec.", NORM: "december"},
-    {ORTH: "man.", NORM: "mandag"},
-    {ORTH: "tirs.", NORM: "tirsdag"},
-    {ORTH: "ons.", NORM: "onsdag"},
-    {ORTH: "tor.", NORM: "torsdag"},
-    {ORTH: "tors.", NORM: "torsdag"},
-    {ORTH: "fre.", NORM: "fredag"},
-    {ORTH: "lør.", NORM: "lørdag"},
-    {ORTH: "Jan.", NORM: "januar"},
-    {ORTH: "Febr.", NORM: "februar"},
-    {ORTH: "Feb.", NORM: "februar"},
-    {ORTH: "Mar.", NORM: "marts"},
-    {ORTH: "Apr.", NORM: "april"},
-    {ORTH: "Jun.", NORM: "juni"},
-    {ORTH: "Aug.", NORM: "august"},
-    {ORTH: "Sept.", NORM: "september"},
-    {ORTH: "Sep.", NORM: "september"},
-    {ORTH: "Okt.", NORM: "oktober"},
-    {ORTH: "Nov.", NORM: "november"},
-    {ORTH: "Dec.", NORM: "december"},
-    {ORTH: "Man.", NORM: "mandag"},
-    {ORTH: "Tirs.", NORM: "tirsdag"},
-    {ORTH: "Ons.", NORM: "onsdag"},
-    {ORTH: "Fre.", NORM: "fredag"},
-    {ORTH: "Lør.", NORM: "lørdag"},
-    {ORTH: "og/eller", NORM: "og/eller"},
-]:
-    _exc[exc_data[ORTH]] = [exc_data]
-
-
+_exc = {
+    exc_data[ORTH]: [exc_data]
+    for exc_data in [
+        {ORTH: "Kbh.", NORM: "København"},
+        {ORTH: "jan.", NORM: "januar"},
+        {ORTH: "febr.", NORM: "februar"},
+        {ORTH: "feb.", NORM: "februar"},
+        {ORTH: "mar.", NORM: "marts"},
+        {ORTH: "apr.", NORM: "april"},
+        {ORTH: "jun.", NORM: "juni"},
+        {ORTH: "aug.", NORM: "august"},
+        {ORTH: "sept.", NORM: "september"},
+        {ORTH: "sep.", NORM: "september"},
+        {ORTH: "okt.", NORM: "oktober"},
+        {ORTH: "nov.", NORM: "november"},
+        {ORTH: "dec.", NORM: "december"},
+        {ORTH: "man.", NORM: "mandag"},
+        {ORTH: "tirs.", NORM: "tirsdag"},
+        {ORTH: "ons.", NORM: "onsdag"},
+        {ORTH: "tor.", NORM: "torsdag"},
+        {ORTH: "tors.", NORM: "torsdag"},
+        {ORTH: "fre.", NORM: "fredag"},
+        {ORTH: "lør.", NORM: "lørdag"},
+        {ORTH: "Jan.", NORM: "januar"},
+        {ORTH: "Febr.", NORM: "februar"},
+        {ORTH: "Feb.", NORM: "februar"},
+        {ORTH: "Mar.", NORM: "marts"},
+        {ORTH: "Apr.", NORM: "april"},
+        {ORTH: "Jun.", NORM: "juni"},
+        {ORTH: "Aug.", NORM: "august"},
+        {ORTH: "Sept.", NORM: "september"},
+        {ORTH: "Sep.", NORM: "september"},
+        {ORTH: "Okt.", NORM: "oktober"},
+        {ORTH: "Nov.", NORM: "november"},
+        {ORTH: "Dec.", NORM: "december"},
+        {ORTH: "Man.", NORM: "mandag"},
+        {ORTH: "Tirs.", NORM: "tirsdag"},
+        {ORTH: "Ons.", NORM: "onsdag"},
+        {ORTH: "Fre.", NORM: "fredag"},
+        {ORTH: "Lør.", NORM: "lørdag"},
+        {ORTH: "og/eller", NORM: "og/eller"},
+    ]
+}
 # Specified case only
 for orth in [
     "diam.",
@@ -576,6 +572,6 @@ for h in range(1, 31 + 1):
         _exc[f"{h}{period}"] = [{ORTH: f"{h}."}]
 
 _custom_base_exc = {"i.": [{ORTH: "i", NORM: "i"}, {ORTH: "."}]}
-_exc.update(_custom_base_exc)
+_exc |= _custom_base_exc
 
 TOKENIZER_EXCEPTIONS = update_exc(BASE_EXCEPTIONS, _exc)

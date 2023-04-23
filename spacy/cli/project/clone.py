@@ -48,9 +48,8 @@ def project_clone_cli(
                 f"branches {default_branches_msg} do not exist.",
                 exits=1,
             )
-    else:
-        if not git_repo_branch_exists(repo, branch):
-            msg.fail(f"repo: {repo} (branch: {branch}) does not exist.", exits=1)
+    elif not git_repo_branch_exists(repo, branch):
+        msg.fail(f"repo: {repo} (branch: {branch}) does not exist.", exits=1)
     assert isinstance(branch, str)
     project_clone(name, dest, repo=repo, branch=branch, sparse_checkout=sparse_checkout)
 
@@ -83,7 +82,7 @@ def project_clone(
     if not (project_dir / PROJECT_FILE).exists():
         msg.warn(f"No {PROJECT_FILE} found in directory")
     else:
-        msg.good(f"Your project is now ready!")
+        msg.good("Your project is now ready!")
         print(f"To fetch the assets, run:\n{COMMAND} project assets {dest}")
 
 

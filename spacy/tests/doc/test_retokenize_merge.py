@@ -97,7 +97,7 @@ def test_doc_retokenize_spans_merge_tokens(en_tokenizer):
     assert doc[1].head.text == "start"
     with doc.retokenize() as retokenizer:
         attrs = {"tag": "NNP", "lemma": "Los Angeles", "ent_type": "GPE"}
-        retokenizer.merge(doc[0:2], attrs=attrs)
+        retokenizer.merge(doc[:2], attrs=attrs)
     assert len(doc) == 3
     assert doc[0].text == "Los Angeles"
     assert doc[0].head.text == "start"
@@ -120,7 +120,7 @@ def test_doc_retokenize_spans_merge_tokens_default_attrs(en_vocab):
     assert doc[0].pos_ == "DET"
     assert doc[0].lemma_ == "the"
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2])
+        retokenizer.merge(doc[:2])
     assert len(doc) == 3
     assert doc[0].text == "The players"
     assert doc[0].tag_ == "NN"
@@ -135,7 +135,7 @@ def test_doc_retokenize_spans_merge_tokens_default_attrs(en_vocab):
     assert doc[0].pos_ == "DET"
     assert doc[0].lemma_ == "the"
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2])
+        retokenizer.merge(doc[:2])
         retokenizer.merge(doc[2:4])
     assert len(doc) == 2
     assert doc[0].text == "The players"
@@ -172,12 +172,20 @@ def test_doc_retokenize_spans_merge_non_disjoint(en_tokenizer):
     with pytest.raises(ValueError):
         with doc.retokenize() as retokenizer:
             retokenizer.merge(
-                doc[0:2],
-                attrs={"tag": "NNP", "lemma": "Los Angeles", "ent_type": "GPE"},
+                doc[:2],
+                attrs={
+                    "tag": "NNP",
+                    "lemma": "Los Angeles",
+                    "ent_type": "GPE",
+                },
             )
             retokenizer.merge(
-                doc[0:1],
-                attrs={"tag": "NNP", "lemma": "Los Angeles", "ent_type": "GPE"},
+                doc[:1],
+                attrs={
+                    "tag": "NNP",
+                    "lemma": "Los Angeles",
+                    "ent_type": "GPE",
+                },
             )
 
 
@@ -259,7 +267,7 @@ def test_doc_retokenize_spans_entity_merge_iob(en_vocab):
     assert doc[2].ent_iob_ == "I"
     assert doc[3].ent_iob_ == "B"
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2])
+        retokenizer.merge(doc[:2])
     assert len(doc) == len(words) - 1
     assert doc[0].ent_iob_ == "B"
     assert doc[1].ent_iob_ == "I"
@@ -269,7 +277,7 @@ def test_doc_retokenize_spans_entity_merge_iob(en_vocab):
     doc = Doc(Vocab(), words=words)
     with doc.retokenize() as retokenizer:
         attrs = {"ent_type": "ent-abc", "ent_iob": 1}
-        retokenizer.merge(doc[0:3], attrs=attrs)
+        retokenizer.merge(doc[:3], attrs=attrs)
         retokenizer.merge(doc[3:5], attrs=attrs)
     assert doc[0].ent_iob_ == "B"
     assert doc[1].ent_iob_ == "I"
@@ -358,7 +366,7 @@ def test_doc_retokenize_spans_sentence_update_after_merge(en_tokenizer):
     init_len2 = len(sent2)
     with doc.retokenize() as retokenizer:
         attrs = {"lemma": "none", "ent_type": "none"}
-        retokenizer.merge(doc[0:2], attrs=attrs)
+        retokenizer.merge(doc[:2], attrs=attrs)
         retokenizer.merge(doc[-2:], attrs=attrs)
     sent1, sent2 = list(doc.sents)
     assert len(sent1) == init_len - 1
@@ -379,7 +387,7 @@ def test_doc_retokenize_spans_subtree_size_check(en_tokenizer):
     init_len = len(list(sent1.root.subtree))
     with doc.retokenize() as retokenizer:
         attrs = {"lemma": "none", "ent_type": "none"}
-        retokenizer.merge(doc[0:2], attrs=attrs)
+        retokenizer.merge(doc[:2], attrs=attrs)
     assert len(list(sent1.root.subtree)) == init_len - 1
 
 
@@ -390,14 +398,14 @@ def test_doc_retokenize_merge_extension_attrs(en_vocab):
     # Test regular merging
     with doc.retokenize() as retokenizer:
         attrs = {"lemma": "hello world", "_": {"a": True, "b": "1"}}
-        retokenizer.merge(doc[0:2], attrs=attrs)
+        retokenizer.merge(doc[:2], attrs=attrs)
     assert doc[0].lemma_ == "hello world"
     assert doc[0]._.a is True
     assert doc[0]._.b == "1"
     # Test bulk merging
     doc = Doc(en_vocab, words=["hello", "world", "!", "!"])
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2], attrs={"_": {"a": True, "b": "1"}})
+        retokenizer.merge(doc[:2], attrs={"_": {"a": True, "b": "1"}})
         retokenizer.merge(doc[2:4], attrs={"_": {"a": None, "b": "2"}})
     assert doc[0]._.a is True
     assert doc[0]._.b == "1"
@@ -413,7 +421,7 @@ def test_doc_retokenize_merge_extension_attrs_invalid(en_vocab, underscore_attrs
     attrs = {"_": underscore_attrs}
     with pytest.raises(ValueError):
         with doc.retokenize() as retokenizer:
-            retokenizer.merge(doc[0:2], attrs=attrs)
+            retokenizer.merge(doc[:2], attrs=attrs)
 
 
 def test_doc_retokenizer_merge_lex_attrs(en_vocab):
@@ -426,7 +434,7 @@ def test_doc_retokenizer_merge_lex_attrs(en_vocab):
     doc = Doc(en_vocab, words=["hello", "world", "!"])
     assert not any(t.is_stop for t in doc)
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2], attrs={"lemma": "hello world", "is_stop": True})
+        retokenizer.merge(doc[:2], attrs={"lemma": "hello world", "is_stop": True})
     assert doc[0].lemma_ == "hello world"
     assert doc[0].is_stop
     # Test bulk merging
@@ -434,7 +442,7 @@ def test_doc_retokenizer_merge_lex_attrs(en_vocab):
     assert not any(t.like_num for t in doc)
     assert not any(t.is_stop for t in doc)
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2], attrs={"like_num": True})
+        retokenizer.merge(doc[:2], attrs={"like_num": True})
         retokenizer.merge(doc[2:4], attrs={"is_stop": True})
     assert doc[0].like_num
     assert doc[1].is_stop
@@ -444,7 +452,7 @@ def test_doc_retokenizer_merge_lex_attrs(en_vocab):
     doc = Doc(en_vocab, words=["eins", "zwei", "!", "!"])
     assert doc[0].norm_ == "eins"
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:1], attrs={"norm": "1"})
+        retokenizer.merge(doc[:1], attrs={"norm": "1"})
     assert doc[0].norm_ == "1"
     assert en_vocab["eins"].norm_ == "eins"
 
@@ -454,8 +462,8 @@ def test_retokenize_skip_duplicates(en_vocab):
     of complaining about overlaps. See #3687."""
     doc = Doc(en_vocab, words=["hello", "world", "!"])
     with doc.retokenize() as retokenizer:
-        retokenizer.merge(doc[0:2])
-        retokenizer.merge(doc[0:2])
+        retokenizer.merge(doc[:2])
+        retokenizer.merge(doc[:2])
     assert len(doc) == 2
     assert doc[0].text == "hello world"
 

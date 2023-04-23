@@ -20,7 +20,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
     nmod = doc.vocab.strings.add("nmod")
     np_label = doc.vocab.strings.add("NP")
     prev_end = -1
-    for i, word in enumerate(doclike):
+    for word in doclike:
         if word.pos not in (NOUN, PROPN, PRON):
             continue
         # Prevent nested chunks from being produced

@@ -12,17 +12,16 @@ class PolishLemmatizer(Lemmatizer):
 
     @classmethod
     def get_lookups_config(cls, mode: str) -> Tuple[List[str], List[str]]:
-        if mode == "pos_lookup":
-            # fmt: off
-            required = [
-                "lemma_lookup_adj", "lemma_lookup_adp", "lemma_lookup_adv",
-                "lemma_lookup_aux", "lemma_lookup_noun", "lemma_lookup_num",
-                "lemma_lookup_part", "lemma_lookup_pron", "lemma_lookup_verb"
-            ]
-            # fmt: on
-            return (required, [])
-        else:
+        if mode != "pos_lookup":
             return super().get_lookups_config(mode)
+        # fmt: off
+        required = [
+            "lemma_lookup_adj", "lemma_lookup_adp", "lemma_lookup_adv",
+            "lemma_lookup_aux", "lemma_lookup_noun", "lemma_lookup_num",
+            "lemma_lookup_part", "lemma_lookup_pron", "lemma_lookup_verb"
+        ]
+        # fmt: on
+        return (required, [])
 
     def pos_lookup_lemmatize(self, token: Token) -> List[str]:
         string = token.text
@@ -31,7 +30,7 @@ class PolishLemmatizer(Lemmatizer):
         lookup_pos = univ_pos.lower()
         if univ_pos == "PROPN":
             lookup_pos = "noun"
-        lookup_table = self.lookups.get_table("lemma_lookup_" + lookup_pos, {})
+        lookup_table = self.lookups.get_table(f"lemma_lookup_{lookup_pos}", {})
         if univ_pos == "NOUN":
             return self.lemmatize_noun(string, morphology, lookup_table)
         if univ_pos != "PROPN":
@@ -47,7 +46,7 @@ class PolishLemmatizer(Lemmatizer):
     ) -> List[str]:
         # this method utilizes different procedures for adjectives
         # with 'nie' and 'naj' prefixes
-        if string[:3] == "nie":
+        if string.startswith("nie"):
             search_string = string[3:]
             if search_string[:3] == "naj":
                 naj_search_string = search_string[3:]
@@ -55,7 +54,7 @@ class PolishLemmatizer(Lemmatizer):
                     return [lookup_table[naj_search_string]]
             if search_string in lookup_table:
                 return [lookup_table[search_string]]
-        if string[:3] == "naj":
+        if string.startswith("naj"):
             naj_search_string = string[3:]
             if naj_search_string in lookup_table:
                 return [lookup_table[naj_search_string]]
@@ -66,7 +65,7 @@ class PolishLemmatizer(Lemmatizer):
     ) -> List[str]:
         # this method utilizes a different procedure for verbs
         # with 'nie' prefix
-        if string[:3] == "nie":
+        if string.startswith("nie"):
             search_string = string[3:]
             if search_string in lookup_table:
                 return [lookup_table[search_string]]

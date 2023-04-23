@@ -94,7 +94,7 @@ def test_language_evaluate(nlp):
     assert scores["speed"] > 0
 
     # test with generator
-    scores = nlp.evaluate(eg for eg in [example])
+    scores = nlp.evaluate(iter([example]))
     assert scores["speed"] > 0
 
     # Not allowed to call with just one Example
@@ -274,13 +274,12 @@ def nlp2(nlp, sample_vectors):
 
 @pytest.fixture
 def texts():
-    data = [
+    return [
         "Hello world.",
         "This is spacy.",
         "You can use multiprocessing with pipe method.",
         "Please try!",
     ]
-    return data
 
 
 @pytest.mark.parametrize("n_process", [1, 2])
@@ -330,7 +329,7 @@ def test_language_pipe_error_handler(n_process):
         # set explicitely to ignoring
         nlp.set_error_handler(ignore_error)
         docs = list(nlp.pipe(texts, n_process=n_process))
-        assert len(docs) == 0
+        assert not docs
         nlp(texts[0])
 
 
@@ -433,7 +432,7 @@ def test_language_pipe_error_handler_make_doc_actual(n_process):
                 list(nlp.pipe(texts, n_process=n_process))
         else:
             docs = list(nlp.pipe(texts, n_process=n_process))
-            assert len(docs) == 0
+            assert not docs
 
 
 @pytest.mark.xfail
@@ -450,7 +449,7 @@ def test_language_pipe_error_handler_make_doc_preferred(n_process):
             list(nlp.pipe(texts, n_process=n_process))
         nlp.default_error_handler = ignore_error
         docs = list(nlp.pipe(texts, n_process=n_process))
-        assert len(docs) == 0
+        assert not docs
 
 
 def test_language_from_config_before_after_init():
@@ -573,6 +572,8 @@ def test_language_from_config_before_after_init_invalid():
 def test_language_whitespace_tokenizer():
     """Test the custom whitespace tokenizer from the docs."""
 
+
+
     class WhitespaceTokenizer:
         def __init__(self, vocab):
             self.vocab = vocab
@@ -587,12 +588,13 @@ def test_language_whitespace_tokenizer():
                     spaces[i] = False
             # Remove the final trailing space
             if words[-1] == " ":
-                words = words[0:-1]
-                spaces = spaces[0:-1]
+                words = words[:-1]
+                spaces = spaces[:-1]
             else:
                 spaces[-1] = False
 
             return Doc(self.vocab, words=words, spaces=spaces)
+
 
     nlp = spacy.blank("en")
     nlp.tokenizer = WhitespaceTokenizer(nlp.vocab)
@@ -763,9 +765,7 @@ def test_multiprocessing_gpu_warning(nlp2, texts):
 
     with pytest.warns(UserWarning, match="multiprocessing with GPU models"):
         with pytest.raises(ValueError):
-            # Trigger multi-processing.
-            for _ in docs:
-                pass
+            pass
 
 
 def test_dot_in_factory_names(nlp):

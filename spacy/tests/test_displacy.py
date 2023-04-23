@@ -338,7 +338,7 @@ def test_displacy_render_wrapper(en_vocab):
     """Test that displaCy accepts custom rendering wrapper."""
 
     def wrapper(html):
-        return "TEST" + html + "TEST"
+        return f"TEST{html}TEST"
 
     displacy.set_render_wrapper(wrapper)
     doc = Doc(en_vocab, words=["But", "Google", "is", "starting", "from", "behind"])

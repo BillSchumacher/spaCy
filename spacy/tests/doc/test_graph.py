@@ -22,7 +22,7 @@ def test_graph_edges_and_nodes():
     assert node1.heads() == []
     assert [tuple(h) for h in node2.heads()] == [(0,)]
     assert [tuple(t) for t in node1.tails()] == [(1, 3)]
-    assert [tuple(t) for t in node2.tails()] == []
+    assert not [tuple(t) for t in node2.tails()]
 
 
 def test_graph_walk():
@@ -43,6 +43,6 @@ def test_graph_walk():
     assert [tuple(h) for h in node2.walk_heads()] == [(0,), (3,), (0,)]
     assert [tuple(h) for h in node3.walk_heads()] == [(0,), (3,)]
     assert [tuple(t) for t in node0.walk_tails()] == [(1,), (2,), (3,), (0,)]
-    assert [tuple(t) for t in node1.walk_tails()] == []
-    assert [tuple(t) for t in node2.walk_tails()] == []
+    assert not [tuple(t) for t in node1.walk_tails()]
+    assert not [tuple(t) for t in node2.walk_tails()]
     assert [tuple(t) for t in node3.walk_tails()] == [(0,), (1,), (2,), (3,)]

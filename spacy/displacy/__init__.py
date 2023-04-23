@@ -51,12 +51,12 @@ def render(
         raise ValueError(Errors.E087.format(style=style))
     if isinstance(docs, (Doc, Span, dict)):
         docs = [docs]
-    docs = [obj if not isinstance(obj, Span) else obj.as_doc() for obj in docs]
+    docs = [obj.as_doc() if isinstance(obj, Span) else obj for obj in docs]
     if not all(isinstance(obj, (Doc, Span, dict)) for obj in docs):
         raise ValueError(Errors.E096)
     renderer_func, converter = factories[style]
     renderer = renderer_func(options=options)
-    parsed = [converter(doc, options) for doc in docs] if not manual else docs  # type: ignore
+    parsed = docs if manual else [converter(doc, options) for doc in docs]
     if manual:
         for doc in docs:
             if isinstance(doc, dict) and "ents" in doc:
@@ -70,7 +70,7 @@ def render(
         # See #4840 for details on span wrapper to disable mathjax
         from IPython.core.display import display, HTML
 
-        return display(HTML('<span class="tex2jax_ignore">{}</span>'.format(html)))
+        return display(HTML(f'<span class="tex2jax_ignore">{html}</span>'))
     return html
 
 

@@ -5,7 +5,7 @@ from ..util import registry
 
 @registry.layers("spacy.PrecomputableAffine.v1")
 def PrecomputableAffine(nO, nI, nF, nP, dropout=0.1):
-    model = Model(
+    return Model(
         "precomputable_affine",
         forward,
         init=init,
@@ -13,7 +13,6 @@ def PrecomputableAffine(nO, nI, nF, nP, dropout=0.1):
         params={"W": None, "b": None, "pad": None},
         attrs={"dropout_rate": dropout},
     )
-    return model
 
 
 def forward(model, X, is_train):
@@ -140,10 +139,7 @@ def init(model, X=None, Y=None):
         vectors = vectors.reshape((vectors.shape[0], nO, nP))
         vectors += b
         vectors = model.ops.asarray(vectors)
-        if nP >= 2:
-            return model.ops.maxout(vectors)[0]
-        else:
-            return vectors * (vectors >= 0)
+        return model.ops.maxout(vectors)[0] if nP >= 2 else vectors * (vectors >= 0)
 
     tol_var = 0.01
     tol_mean = 0.01

@@ -180,10 +180,10 @@ def like_num(text):
     # reference: http://www.englishkitab.com/Vocabulary/Numbers.html
     if text in _ordinal_words_one_to_ten:
         return True
-    if text.endswith(_ordinal_suffix):
-        if text[: -len(_ordinal_suffix)] in _eleven_to_beyond:
-            return True
-    return False
+    return bool(
+        text.endswith(_ordinal_suffix)
+        and text[: -len(_ordinal_suffix)] in _eleven_to_beyond
+    )
 
 
 LEX_ATTRS = {NORM: norm, LIKE_NUM: like_num}

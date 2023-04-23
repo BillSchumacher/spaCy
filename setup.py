@@ -95,10 +95,7 @@ def is_new_osx():
     mac_ver = platform.mac_ver()[0]
     if mac_ver.startswith("10"):
         minor_version = int(mac_ver.split(".")[1])
-        if minor_version >= 7:
-            return True
-        else:
-            return False
+        return minor_version >= 7
     return False
 
 
@@ -206,8 +203,7 @@ def setup_package():
         numpy.get_include(),
         get_python_inc(plat_specific=True),
     ]
-    ext_modules = []
-    ext_modules.append(
+    ext_modules = [
         Extension(
             "spacy.matcher.levenshtein",
             [
@@ -217,7 +213,7 @@ def setup_package():
             language="c",
             include_dirs=include_dirs,
         )
-    )
+    ]
     for name in MOD_NAMES:
         mod_path = name.replace(".", "/") + ".pyx"
         ext = Extension(

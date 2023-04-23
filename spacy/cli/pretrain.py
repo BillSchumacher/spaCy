@@ -83,7 +83,7 @@ def pretrain_cli(
 def verify_cli_args(config_path, output_dir, resume_path, epoch_resume):
     if not config_path or (str(config_path) != "-" and not config_path.exists()):
         msg.fail("Config file not found", config_path, exits=1)
-    if output_dir.exists() and [p for p in output_dir.iterdir()]:
+    if output_dir.exists() and list(output_dir.iterdir()):
         if resume_path:
             msg.warn(
                 "Output directory is not empty.",
@@ -105,13 +105,14 @@ def verify_cli_args(config_path, output_dir, resume_path, epoch_resume):
                 exits=True,
             )
         model_name = re.search(r"model\d+\.bin", str(resume_path))
-        if not model_name and not epoch_resume:
-            msg.fail(
-                "You have to use the --epoch-resume setting when using a renamed weight file for --resume-path",
-                exits=True,
-            )
-        elif not model_name and epoch_resume < 0:
-            msg.fail(
-                f"The argument --epoch-resume has to be greater or equal to 0. {epoch_resume} is invalid",
-                exits=True,
-            )
+        if not model_name:
+            if not epoch_resume:
+                msg.fail(
+                    "You have to use the --epoch-resume setting when using a renamed weight file for --resume-path",
+                    exits=True,
+                )
+            elif epoch_resume < 0:
+                msg.fail(
+                    f"The argument --epoch-resume has to be greater or equal to 0. {epoch_resume} is invalid",
+                    exits=True,
+                )

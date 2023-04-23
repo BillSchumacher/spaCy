@@ -140,7 +140,7 @@ def prioritize_new_ents_filter(
         end = span.end
         if all(token.i not in seen_tokens for token in span):
             new_entities.append(span)
-            entities = [e for e in entities if not (e.start < end and e.end > start)]
+            entities = [e for e in entities if e.start >= end or e.end <= start]
             seen_tokens.update(range(start, end))
     return entities + new_entities
 
@@ -185,7 +185,7 @@ def overlapping_labeled_spans_score(
     examples: Iterable[Example], *, spans_key=DEFAULT_SPANS_KEY, **kwargs
 ) -> Dict[str, Any]:
     kwargs = dict(kwargs)
-    attr_prefix = f"spans_"
+    attr_prefix = "spans_"
     kwargs.setdefault("attr", f"{attr_prefix}{spans_key}")
     kwargs.setdefault("allow_overlap", True)
     kwargs.setdefault("labeled", True)
@@ -287,10 +287,10 @@ class SpanRuler(Pipe):
 
     def __contains__(self, label: str) -> bool:
         """Whether a label is present in the patterns."""
-        for label_id in self._match_label_id_map.values():
-            if label_id["label"] == label:
-                return True
-        return False
+        return any(
+            label_id["label"] == label
+            for label_id in self._match_label_id_map.values()
+        )
 
     @property
     def key(self) -> Optional[str]:
@@ -321,7 +321,7 @@ class SpanRuler(Pipe):
                 List[Tuple[int, int, int]],
                 list(self.matcher(doc)) + list(self.phrase_matcher(doc)),
             )
-        deduplicated_matches = set(
+        deduplicated_matches = {
             Span(
                 doc,
                 start,
@@ -331,7 +331,7 @@ class SpanRuler(Pipe):
             )
             for m_id, start, end in matches
             if start != end
-        )
+        }
         return sorted(list(deduplicated_matches))
 
     def set_annotations(self, doc, matches):
@@ -347,9 +347,7 @@ class SpanRuler(Pipe):
             doc.spans[self.key] = spans
         # set doc.ents if annotate_ents is set
         if self.annotate_ents:
-            spans = []
-            if not self.overwrite:
-                spans = list(doc.ents)
+            spans = [] if self.overwrite else list(doc.ents)
             spans = self.ents_filter(spans, matches)
             try:
                 doc.ents = sorted(spans)
@@ -364,7 +362,7 @@ class SpanRuler(Pipe):
 
         DOCS: https://spacy.io/api/spanruler#labels
         """
-        return tuple(sorted(set([cast(str, p["label"]) for p in self._patterns])))
+        return tuple(sorted({cast(str, p["label"]) for p in self._patterns}))
 
     @property
     def ids(self) -> Tuple[str, ...]:
@@ -374,9 +372,7 @@ class SpanRuler(Pipe):
 
         DOCS: https://spacy.io/api/spanruler#ids
         """
-        return tuple(
-            sorted(set([cast(str, p.get("id")) for p in self._patterns]) - set([None]))
-        )
+        return tuple(sorted({cast(str, p.get("id")) for p in self._patterns} - {None}))
 
     def initialize(
         self,
@@ -423,12 +419,15 @@ class SpanRuler(Pipe):
         # disable the nlp components after this one in case they haven't been
         # initialized / deserialized yet
         try:
-            current_index = -1
-            for i, (name, pipe) in enumerate(self.nlp.pipeline):
-                if self == pipe:
-                    current_index = i
-                    break
-            subsequent_pipes = [pipe for pipe in self.nlp.pipe_names[current_index:]]
+            current_index = next(
+                (
+                    i
+                    for i, (name, pipe) in enumerate(self.nlp.pipeline)
+                    if self == pipe
+                ),
+                -1,
+            )
+            subsequent_pipes = list(self.nlp.pipe_names[current_index:])
         except ValueError:
             subsequent_pipes = []
         with self.nlp.select_pipes(disable=subsequent_pipes):

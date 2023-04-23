@@ -127,11 +127,11 @@ def test_doc_to_json_with_token_span_attributes(doc):
 
     doc._.json_test1 = "hello world"
     doc._.json_test2 = [1, 2, 3]
-    doc[0:1]._.span_test = "span_attribute"
-    doc[0:2]._.span_test = "span_attribute_2"
+    doc[:1]._.span_test = "span_attribute"
+    doc[:2]._.span_test = "span_attribute_2"
     doc[0]._.token_test = 117
     doc[1]._.token_test = 118
-    doc.spans["span_group"] = [doc[0:1]]
+    doc.spans["span_group"] = [doc[:1]]
     json_doc = doc.to_json(
         underscore=["json_test1", "json_test2", "token_test", "span_test"]
     )
@@ -155,7 +155,7 @@ def test_doc_to_json_with_custom_user_data(doc):
     Span.set_extension("span_test", default=False)
 
     doc._.json_test = "hello world"
-    doc[0:1]._.span_test = "span_attribute"
+    doc[:1]._.span_test = "span_attribute"
     doc[0]._.token_test = 117
     json_doc = doc.to_json(underscore=["json_test", "token_test", "span_test"])
     doc.user_data["user_data_test"] = 10
@@ -177,7 +177,7 @@ def test_doc_to_json_with_token_span_same_identifier(doc):
     Span.set_extension("my_ext", default=False)
 
     doc._.my_ext = "hello world"
-    doc[0:1]._.my_ext = "span_attribute"
+    doc[:1]._.my_ext = "span_attribute"
     doc[0]._.my_ext = 117
     json_doc = doc.to_json(underscore=["my_ext"])
 
@@ -195,7 +195,7 @@ def test_doc_to_json_with_token_attributes_missing(doc):
     Token.set_extension("token_test", default=False)
     Span.set_extension("span_test", default=False)
 
-    doc[0:1]._.span_test = "span_attribute"
+    doc[:1]._.span_test = "span_attribute"
     doc[0]._.token_test = 117
     json_doc = doc.to_json(underscore=["span_test"])
 
@@ -251,9 +251,9 @@ def test_json_to_doc(doc):
 
 def test_json_to_doc_compat(doc, doc_json):
     new_doc = Doc(doc.vocab).from_json(doc_json, validate=True)
-    new_tokens = [token for token in new_doc]
+    new_tokens = list(new_doc)
     assert new_doc.text == doc.text == "c d e "
-    assert len(new_tokens) == len([token for token in doc]) == 3
+    assert len(new_tokens) == len(list(doc)) == 3
     assert new_tokens[0].pos == doc[0].pos
     assert new_tokens[0].tag == doc[0].tag
     assert new_tokens[0].dep == doc[0].dep
@@ -272,7 +272,7 @@ def test_json_to_doc_underscore(doc):
     doc._.json_test2 = [1, 2, 3]
     json_doc = doc.to_json(underscore=["json_test1", "json_test2"])
     new_doc = Doc(doc.vocab).from_json(json_doc, validate=True)
-    assert all([new_doc.has_extension(f"json_test{i}") for i in range(1, 3)])
+    assert all(new_doc.has_extension(f"json_test{i}") for i in range(1, 3))
     assert new_doc._.json_test1 == "hello world"
     assert new_doc._.json_test2 == [1, 2, 3]
     assert doc.to_bytes() == new_doc.to_bytes()
@@ -285,8 +285,8 @@ def test_json_to_doc_with_token_span_attributes(doc):
     Span.set_extension("span_test", default=False)
     doc._.json_test1 = "hello world"
     doc._.json_test2 = [1, 2, 3]
-    doc[0:1]._.span_test = "span_attribute"
-    doc[0:2]._.span_test = "span_attribute_2"
+    doc[:1]._.span_test = "span_attribute"
+    doc[:2]._.span_test = "span_attribute_2"
     doc[0]._.token_test = 117
     doc[1]._.token_test = 118
 
@@ -296,13 +296,13 @@ def test_json_to_doc_with_token_span_attributes(doc):
     json_doc = srsly.json_loads(srsly.json_dumps(json_doc))
     new_doc = Doc(doc.vocab).from_json(json_doc, validate=True)
 
-    assert all([new_doc.has_extension(f"json_test{i}") for i in range(1, 3)])
+    assert all(new_doc.has_extension(f"json_test{i}") for i in range(1, 3))
     assert new_doc._.json_test1 == "hello world"
     assert new_doc._.json_test2 == [1, 2, 3]
     assert new_doc[0]._.token_test == 117
     assert new_doc[1]._.token_test == 118
-    assert new_doc[0:1]._.span_test == "span_attribute"
-    assert new_doc[0:2]._.span_test == "span_attribute_2"
+    assert new_doc[:1]._.span_test == "span_attribute"
+    assert new_doc[:2]._.span_test == "span_attribute_2"
     assert new_doc.user_data == doc.user_data
     assert new_doc.to_bytes(exclude=["user_data"]) == doc.to_bytes(
         exclude=["user_data"]

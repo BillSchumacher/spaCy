@@ -105,8 +105,7 @@ def create_tokenizer() -> Callable[["Language"], Tokenizer]:
 @registry.misc("spacy.LookupsDataLoader.v1")
 def load_lookups_data(lang, tables):
     util.logger.debug("Loading lookups from spacy-lookups-data: %s", tables)
-    lookups = load_lookups(lang=lang, tables=tables)
-    return lookups
+    return load_lookups(lang=lang, tables=tables)
 
 
 class Language:
@@ -174,9 +173,8 @@ class Language:
         if vocab is True:
             vectors_name = meta.get("vectors", {}).get("name")
             vocab = create_vocab(self.lang, self.Defaults, vectors_name=vectors_name)
-        else:
-            if (self.lang and vocab.lang) and (self.lang != vocab.lang):
-                raise ValueError(Errors.E150.format(nlp=self.lang, vocab=vocab.lang))
+        elif (self.lang and vocab.lang) and (self.lang != vocab.lang):
+            raise ValueError(Errors.E150.format(nlp=self.lang, vocab=vocab.lang))
         self.vocab: Vocab = vocab
         if self.lang is None:
             self.lang = self.vocab.lang
@@ -346,9 +344,10 @@ class Language:
 
         RETURNS (Dict[str, str]): Factory names, keyed by component names.
         """
-        factories = {}
-        for pipe_name, pipe in self._components:
-            factories[pipe_name] = self.get_pipe_meta(pipe_name).factory
+        factories = {
+            pipe_name: self.get_pipe_meta(pipe_name).factory
+            for pipe_name, pipe in self._components
+        }
         return SimpleFrozenDict(factories)
 
     @property
@@ -380,9 +379,7 @@ class Language:
         name (str): The factory name.
         RETURNS (str): The internal factory name.
         """
-        if cls.lang is None:
-            return name
-        return f"{cls.lang}.{name}"
+        return name if cls.lang is None else f"{cls.lang}.{name}"
 
     @classmethod
     def get_factory_meta(cls, name: str) -> "FactoryMeta":
@@ -425,8 +422,7 @@ class Language:
         """
         if name not in self._pipe_configs:
             raise ValueError(Errors.E960.format(name=name))
-        pipe_config = self._pipe_configs[name]
-        return pipe_config
+        return self._pipe_configs[name]
 
     @classmethod
     def factory(
@@ -514,9 +510,7 @@ class Language:
             )
             return factory_func
 
-        if func is not None:  # Support non-decorator use cases
-            return add_factory(func)
-        return add_factory
+        return add_factory(func) if func is not None else add_factory
 
     @classmethod
     def component(
@@ -583,9 +577,7 @@ class Language:
             )
             return component_func
 
-        if func is not None:  # Support non-decorator use cases
-            return add_component(func)
-        return add_component
+        return add_component(func) if func is not None else add_component
 
     def analyze_pipes(
         self,
@@ -816,7 +808,7 @@ class Language:
             raise ValueError(
                 Errors.E006.format(args=all_args, opts=self.component_names)
             )
-        if last or not any(value is not None for value in [first, before, after]):
+        if last or all(value is None for value in [first, before, after]):
             return len(self._components)
         elif first:
             return 0
@@ -832,8 +824,6 @@ class Language:
                     Errors.E001.format(name=after, opts=self.component_names)
                 )
             return self.component_names.index(after) + 1
-        # We're only accepting indices referring to components that exist
-        # (can't just do isinstance here because bools are instance of int, too)
         elif type(before) == int:
             if before >= len(self._components) or before < 0:
                 err = Errors.E959.format(
@@ -1144,7 +1134,7 @@ class Language:
         if component_cfg is None:
             component_cfg = {}
         pipe_kwargs = {}
-        for i, (name, proc) in enumerate(self.pipeline):
+        for name, proc in self.pipeline:
             component_cfg.setdefault(name, {})
             pipe_kwargs[name] = deepcopy(component_cfg[name])
             component_cfg[name].setdefault("drop", drop)
@@ -1153,14 +1143,13 @@ class Language:
             # ignore statements are used here because mypy ignores hasattr
             if name not in exclude and hasattr(proc, "update"):
                 proc.update(examples, sgd=None, losses=losses, **component_cfg[name])  # type: ignore
-            if sgd not in (None, False):
-                if (
-                    name not in exclude
-                    and isinstance(proc, ty.TrainableComponent)
-                    and proc.is_trainable
-                    and proc.model not in (True, False, None)
-                ):
-                    proc.finish_update(sgd)
+            if sgd not in (None, False) and (
+                name not in exclude
+                and isinstance(proc, ty.TrainableComponent)
+                and proc.is_trainable
+                and proc.model not in (True, False, None)
+            ):
+                proc.finish_update(sgd)
             if name in annotates:
                 for doc, eg in zip(
                     _pipe(
@@ -1306,8 +1295,7 @@ class Language:
                     proc.initialize, p_settings, section="components", name=name
                 )
                 proc.initialize(get_examples, nlp=self, **p_settings)
-        pretrain_cfg = config.get("pretraining")
-        if pretrain_cfg:
+        if pretrain_cfg := config.get("pretraining"):
             P = registry.resolve(pretrain_cfg, schema=ConfigSchemaPretrain)
             init_tok2vec(self, P, I)
         self._link_components()
@@ -1571,8 +1559,7 @@ class Language:
             docs = (self._ensure_doc(text) for text in texts)
             for pipe in pipes:
                 docs = pipe(docs)
-        for doc in docs:
-            yield doc
+        yield from docs
 
     def _has_gpu_model(self, disable: Iterable[str]):
         for name, proc in self.pipeline:
@@ -1778,7 +1765,7 @@ class Language:
         # To create the components we need to use the final interpolated config
         # so all values are available (if component configs use variables).
         # Later we replace the component config with the raw config again.
-        interpolated = filled.interpolate() if not filled.is_interpolated else filled
+        interpolated = filled if filled.is_interpolated else filled.interpolate()
         pipeline = interpolated.get("components", {})
         sourced = util.get_sourced_components(interpolated)
         # If components are loaded from a source (existing models), we cache
@@ -1882,7 +1869,7 @@ class Language:
             enable,
             config["nlp"]["pipeline"],
         )
-        nlp._disabled = set(p for p in disabled_pipes if p not in exclude)
+        nlp._disabled = {p for p in disabled_pipes if p not in exclude}
 
         nlp.batch_size = config["nlp"]["batch_size"]
         nlp.config = filled if auto_fill else config
@@ -1905,13 +1892,9 @@ class Language:
                         proc.remove_listener(listener, listener_name)
 
                 for listener_name in proc.listening_components:
-                    # e.g. tok2vec/transformer
-                    # If it's a component sourced from another pipeline, we check if
-                    # the tok2vec listeners should be replaced with standalone tok2vec
-                    # models (e.g. so component can be frozen without its performance
-                    # degrading when other components/tok2vec are updated)
-                    paths = sourced.get(listener_name, {}).get("replace_listeners", [])
-                    if paths:
+                    if paths := sourced.get(listener_name, {}).get(
+                        "replace_listeners", []
+                    ):
                         nlp.replace_listeners(name, listener_name, paths)
         return nlp
 
@@ -2020,10 +2003,11 @@ class Language:
         DOCS: https://spacy.io/api/language#to_disk
         """
         path = util.ensure_path(path)
-        serializers = {}
-        serializers["tokenizer"] = lambda p: self.tokenizer.to_disk(  # type: ignore[union-attr]
-            p, exclude=["vocab"]
-        )
+        serializers = {
+            "tokenizer": lambda p: self.tokenizer.to_disk(  # type: ignore[union-attr]
+                p, exclude=["vocab"]
+            )
+        }
         serializers["meta.json"] = lambda p: srsly.write_json(p, self.meta)
         serializers["config.cfg"] = lambda p: self.config.to_disk(p)
         for name, proc in self._components:
@@ -2135,8 +2119,9 @@ class Language:
 
         DOCS: https://spacy.io/api/language#to_bytes
         """
-        serializers: Dict[str, Callable[[], bytes]] = {}
-        serializers["vocab"] = lambda: self.vocab.to_bytes(exclude=exclude)
+        serializers: Dict[str, Callable[[], bytes]] = {
+            "vocab": lambda: self.vocab.to_bytes(exclude=exclude)
+        }
         serializers["tokenizer"] = lambda: self.tokenizer.to_bytes(exclude=["vocab"])  # type: ignore[union-attr]
         serializers["meta.json"] = lambda: srsly.json_dumps(self.meta)
         serializers["config.cfg"] = lambda: self.config.to_bytes()

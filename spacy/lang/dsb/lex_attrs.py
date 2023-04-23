@@ -102,12 +102,7 @@ def like_num(text):
         if num.isdigit() and denom.isdigit():
             return True
     text_lower = text.lower()
-    if text_lower in _num_words:
-        return True
-    # Check ordinal number
-    if text_lower in _ordinal_words:
-        return True
-    return False
+    return True if text_lower in _num_words else text_lower in _ordinal_words
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

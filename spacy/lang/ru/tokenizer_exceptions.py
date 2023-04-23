@@ -45,7 +45,7 @@ for abbrev_desc in _abbrev_exc:
     abbrev = abbrev_desc[ORTH]
     for orth in (abbrev, abbrev.capitalize(), abbrev.upper()):
         _exc[orth] = [{ORTH: orth, NORM: abbrev_desc[NORM]}]
-        _exc[orth + "."] = [{ORTH: orth + ".", NORM: abbrev_desc[NORM]}]
+        _exc[f"{orth}."] = [{ORTH: f"{orth}.", NORM: abbrev_desc[NORM]}]
 
 
 for abbr in [

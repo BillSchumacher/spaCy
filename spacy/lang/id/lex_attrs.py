@@ -58,10 +58,7 @@ def is_currency(text):
     if text in LIST_CURRENCY:
         return True
 
-    for char in text:
-        if unicodedata.category(char) != "Sc":
-            return False
-    return True
+    return all(unicodedata.category(char) == "Sc" for char in text)
 
 
 LEX_ATTRS = {IS_CURRENCY: is_currency, LIKE_NUM: like_num}

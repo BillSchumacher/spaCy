@@ -58,4 +58,4 @@ def test_pickle_doc(en_vocab):
     assert [t.text for t in unpickled] == words
     assert [t.dep_ for t in unpickled] == deps
     assert [t.head.i for t in unpickled] == heads
-    assert list(doc.noun_chunks) == []
+    assert not list(doc.noun_chunks)

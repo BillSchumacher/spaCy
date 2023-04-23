@@ -130,8 +130,8 @@ class EntityLinker_v1(TrainablePipe):
         for example in islice(get_examples(), 10):
             doc_sample.append(example.x)
             vector_sample.append(self.model.ops.alloc1f(nO))
-        assert len(doc_sample) > 0, Errors.E923.format(name=self.name)
-        assert len(vector_sample) > 0, Errors.E923.format(name=self.name)
+        assert doc_sample, Errors.E923.format(name=self.name)
+        assert vector_sample, Errors.E923.format(name=self.name)
         self.model.initialize(
             X=doc_sample, Y=self.model.ops.asarray(vector_sample, dtype="float32")
         )
@@ -165,7 +165,7 @@ class EntityLinker_v1(TrainablePipe):
         validate_examples(examples, "EntityLinker_v1.update")
         sentence_docs = []
         for eg in examples:
-            sentences = [s for s in eg.reference.sents]
+            sentences = list(eg.reference.sents)
             kb_ids = eg.get_aligned("ENT_KB_ID", as_string=True)
             for ent in eg.reference.ents:
                 # KB ID of the first token is the same as the whole span
@@ -207,8 +207,7 @@ class EntityLinker_v1(TrainablePipe):
         for eg in examples:
             kb_ids = eg.get_aligned("ENT_KB_ID", as_string=True)
             for ent in eg.reference.ents:
-                kb_id = kb_ids[ent.start]
-                if kb_id:
+                if kb_id := kb_ids[ent.start]:
                     entity_encoding = self.kb.get_vector(kb_id)
                     entity_encodings.append(entity_encoding)
         entity_encodings = self.model.ops.asarray2f(entity_encodings)
@@ -239,8 +238,8 @@ class EntityLinker_v1(TrainablePipe):
             return final_kb_ids
         if isinstance(docs, Doc):
             docs = [docs]
-        for i, doc in enumerate(docs):
-            sentences = [s for s in doc.sents]
+        for doc in docs:
+            sentences = list(doc.sents)
             if len(doc) > 0:
                 # Looping through each entity (TODO: rewrite)
                 for ent in doc.ents:
@@ -301,7 +300,7 @@ class EntityLinker_v1(TrainablePipe):
                             best_index = scores.argmax().item()
                             best_candidate = candidates[best_index]
                             final_kb_ids.append(best_candidate.entity_)
-        if not (len(final_kb_ids) == entity_count):
+        if len(final_kb_ids) != entity_count:
             err = Errors.E147.format(
                 method="predict", msg="result variables not of equal length"
             )
@@ -381,8 +380,7 @@ class EntityLinker_v1(TrainablePipe):
 
         DOCS: https://spacy.io/api/entitylinker#to_disk
         """
-        serialize = {}
-        serialize["vocab"] = lambda p: self.vocab.to_disk(p, exclude=exclude)
+        serialize = {"vocab": lambda p: self.vocab.to_disk(p, exclude=exclude)}
         serialize["cfg"] = lambda p: srsly.write_json(p, self.cfg)
         serialize["kb"] = lambda p: self.kb.to_disk(p)
         serialize["model"] = lambda p: self.model.to_disk(p)

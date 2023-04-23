@@ -87,12 +87,20 @@ def like_num(text):
     if text in _single_num_words:
         return True
     # fmt: off
-    if re.match('^((' + '|'.join(_count_num_words) + '){1}'
-                + '(' + '|'.join(_base_num_words) + '){1})+'
-                + '(' + '|'.join(_count_num_words) + ')?$', text):
-        return True
-    # fmt: on
-    return False
+    return bool(
+        re.match(
+            '^(('
+            + '|'.join(_count_num_words)
+            + '){1}'
+            + '('
+            + '|'.join(_base_num_words)
+            + '){1})+'
+            + '('
+            + '|'.join(_count_num_words)
+            + ')?$',
+            text,
+        )
+    )
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

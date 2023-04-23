@@ -73,35 +73,34 @@ class RemoteStorage:
         url = self.find(path, command_hash=command_hash, content_hash=content_hash)
         if url is None:
             return url
-        else:
-            # Make sure the destination exists
-            if not dest.parent.exists():
-                dest.parent.mkdir(parents=True)
-            tmp: Path
-            with make_tempdir() as tmp:
-                tar_loc = tmp / url.parts[-1]
-                download_file(url, tar_loc)
-                mode_string = f"r:{self.compression}" if self.compression else "r"
-                with tarfile.open(tar_loc, mode=mode_string) as tar_file:
-                    # This requires that the path is added correctly, relative
-                    # to root. This is how we set things up in push()
+        # Make sure the destination exists
+        if not dest.parent.exists():
+            dest.parent.mkdir(parents=True)
+        tmp: Path
+        with make_tempdir() as tmp:
+            tar_loc = tmp / url.parts[-1]
+            download_file(url, tar_loc)
+            mode_string = f"r:{self.compression}" if self.compression else "r"
+            with tarfile.open(tar_loc, mode=mode_string) as tar_file:
+                # This requires that the path is added correctly, relative
+                # to root. This is how we set things up in push()
 
-                    # Disallow paths outside the current directory for the tar
-                    # file (CVE-2007-4559, directory traversal vulnerability)
-                    def is_within_directory(directory, target):
-                        abs_directory = os.path.abspath(directory)
-                        abs_target = os.path.abspath(target)
-                        prefix = os.path.commonprefix([abs_directory, abs_target])
-                        return prefix == abs_directory
+                # Disallow paths outside the current directory for the tar
+                # file (CVE-2007-4559, directory traversal vulnerability)
+                def is_within_directory(directory, target):
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    return prefix == abs_directory
 
-                    def safe_extract(tar, path):
-                        for member in tar.getmembers():
-                            member_path = os.path.join(path, member.name)
-                            if not is_within_directory(path, member_path):
-                                raise ValueError(Errors.E852)
-                        tar.extractall(path)
+                def safe_extract(tar, path):
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise ValueError(Errors.E852)
+                    tar.extractall(path)
 
-                    safe_extract(tar_file, self.root)
+                safe_extract(tar_file, self.root)
         return url
 
     def find(
@@ -124,12 +123,11 @@ class RemoteStorage:
         elif command_hash is not None:
             if (self.url / name / command_hash).exists():
                 urls = list((self.url / name / command_hash).iterdir())
-        else:
-            if (self.url / name).exists():
-                for sub_dir in (self.url / name).iterdir():
-                    urls.extend(sub_dir.iterdir())
-                if content_hash is not None:
-                    urls = [url for url in urls if url.parts[-1] == content_hash]
+        elif (self.url / name).exists():
+            for sub_dir in (self.url / name).iterdir():
+                urls.extend(sub_dir.iterdir())
+            if content_hash is not None:
+                urls = [url for url in urls if url.parts[-1] == content_hash]
         if len(urls) >= 2:
             try:
                 urls.sort(key=lambda x: x.stat().last_modified)  # type: ignore
@@ -196,10 +194,8 @@ def get_env_hash(env: Dict[str, str]) -> str:
     Values in the env dict may be references to the current os.environ, using
     the syntax $ENV_VAR to mean os.environ[ENV_VAR]
     """
-    env_vars = {}
-    for key, value in env.items():
-        if value.startswith("$"):
-            env_vars[key] = os.environ.get(value[1:], "")
-        else:
-            env_vars[key] = value
+    env_vars = {
+        key: os.environ.get(value[1:], "") if value.startswith("$") else value
+        for key, value in env.items()
+    }
     return get_hash(env_vars)

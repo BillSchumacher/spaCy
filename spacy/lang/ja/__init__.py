@@ -46,7 +46,7 @@ class JapaneseTokenizer(DummyTokenizer):
         self.split_mode = split_mode
         self.tokenizer = try_sudachi_import(self.split_mode)
         # if we're using split mode A we don't need subtokens
-        self.need_subtokens = not (split_mode is None or split_mode == "A")
+        self.need_subtokens = split_mode is not None and split_mode != "A"
 
     def __reduce__(self):
         return JapaneseTokenizer, (self.vocab, self.split_mode)
@@ -241,8 +241,7 @@ def try_sudachi_import(split_mode="A"):
             "B": tokenizer.Tokenizer.SplitMode.B,
             "C": tokenizer.Tokenizer.SplitMode.C,
         }[split_mode]
-        tok = dictionary.Dictionary().create(mode=split_mode)
-        return tok
+        return dictionary.Dictionary().create(mode=split_mode)
     except ImportError:
         raise ImportError(
             "Japanese support requires SudachiPy and SudachiDict-core "
@@ -296,9 +295,9 @@ def get_dtokens_and_spaces(dtokens, text, gap_tag="空白"):
     text_spaces = []
     text_pos = 0
     # handle empty and whitespace-only texts
-    if len(words) == 0:
+    if not words:
         return text_dtokens, text_spaces
-    elif len([word for word in words if not word.isspace()]) == 0:
+    elif not [word for word in words if not word.isspace()]:
         assert text.isspace()
         text_dtokens = [DetailedToken(text, gap_tag, "", text, text, None, None)]
         text_spaces = [False]

@@ -104,9 +104,7 @@ def like_num(text):
     _num_words_stripped = [strip_accents_text(num) for num in _num_words]
     if text.isdigit():
         return True
-    if text in _num_words_stripped or text.lower() in _num_words_stripped:
-        return True
-    return False
+    return text in _num_words_stripped or text.lower() in _num_words_stripped
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

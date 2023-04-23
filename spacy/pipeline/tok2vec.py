@@ -85,13 +85,15 @@ class Tok2Vec(TrainablePipe):
 
     def remove_listener(self, listener: "Tok2VecListener", component_name: str) -> bool:
         """Remove a listener for a downstream component. Usually internals."""
-        if component_name in self.listener_map:
-            if listener in self.listener_map[component_name]:
-                self.listener_map[component_name].remove(listener)
-                # If no listeners are left, remove entry
-                if not self.listener_map[component_name]:
-                    del self.listener_map[component_name]
-                return True
+        if (
+            component_name in self.listener_map
+            and listener in self.listener_map[component_name]
+        ):
+            self.listener_map[component_name].remove(listener)
+            # If no listeners are left, remove entry
+            if not self.listener_map[component_name]:
+                del self.listener_map[component_name]
+            return True
         return False
 
     def find_listeners(self, component) -> None:
@@ -103,8 +105,8 @@ class Tok2Vec(TrainablePipe):
         You're unlikely to ever need multiple `Tok2Vec` components, so it's
         fine to leave your listeners upstream_name on '*'.
         """
-        names = ("*", self.name)
         if isinstance(getattr(component, "model", None), Model):
+            names = ("*", self.name)
             for node in component.model.walk():
                 if isinstance(node, Tok2VecListener) and node.upstream_name in names:
                     self.add_listener(node, component.name)
@@ -121,9 +123,8 @@ class Tok2Vec(TrainablePipe):
         if not any(len(doc) for doc in docs):
             # Handle cases where there are no tokens in any docs.
             width = self.model.get_dim("nO")
-            return [self.model.ops.alloc((0, width)) for doc in docs]
-        tokvecs = self.model.predict(docs)
-        return tokvecs
+            return [self.model.ops.alloc((0, width)) for _ in docs]
+        return self.model.predict(docs)
 
     def set_annotations(self, docs: Sequence[Doc], tokvecses) -> None:
         """Modify a batch of documents, using pre-computed scores.
@@ -210,9 +211,7 @@ class Tok2Vec(TrainablePipe):
         DOCS: https://spacy.io/api/tok2vec#initialize
         """
         validate_get_examples(get_examples, "Tok2Vec.initialize")
-        doc_sample = []
-        for example in islice(get_examples(), 10):
-            doc_sample.append(example.x)
+        doc_sample = [example.x for example in islice(get_examples(), 10)]
         assert doc_sample, Errors.E923.format(name=self.name)
         self.model.initialize(X=doc_sample)
 
@@ -272,12 +271,12 @@ class Tok2VecListener(Model):
         """
         if self._batch_id is None and self._outputs is None:
             raise ValueError(Errors.E954)
+        batch_id = self.get_batch_id(inputs)
+        if batch_id == self._batch_id:
+            return True
+
         else:
-            batch_id = self.get_batch_id(inputs)
-            if batch_id != self._batch_id:
-                raise ValueError(Errors.E953.format(id1=batch_id, id2=self._batch_id))
-            else:
-                return True
+            raise ValueError(Errors.E953.format(id1=batch_id, id2=self._batch_id))
 
 
 def forward(model: Tok2VecListener, inputs, is_train: bool):

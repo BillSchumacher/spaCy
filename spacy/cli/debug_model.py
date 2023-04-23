@@ -103,7 +103,7 @@ def debug_model(
     # STEP 0: Printing before training
     msg.info(f"Analysing model with ID {model.id}")
     if print_settings.get("print_before_training"):
-        msg.divider(f"STEP 0 - before training")
+        msg.divider("STEP 0 - before training")
         _print_model(model, print_settings)
 
     # STEP 1: Initializing the model and printing again
@@ -129,7 +129,7 @@ def debug_model(
                 )
 
     if print_settings.get("print_after_init"):
-        msg.divider(f"STEP 1 - after initialization")
+        msg.divider("STEP 1 - after initialization")
         _print_model(model, print_settings)
 
     # STEP 2: Updating the model and printing again
@@ -143,21 +143,21 @@ def debug_model(
         and "transformer-listener" in model.get_ref("tok2vec").name
     ):
         upstream_component = nlp.get_pipe("transformer")
-    for e in range(3):
+    for _ in range(3):
         if upstream_component:
             upstream_component.update(examples)
         pipe.update(examples)
     if print_settings.get("print_after_training"):
-        msg.divider(f"STEP 2 - after training")
+        msg.divider("STEP 2 - after training")
         _print_model(model, print_settings)
 
     # STEP 3: the final prediction
     prediction = model.predict([ex.predicted for ex in examples])
     if print_settings.get("print_prediction"):
-        msg.divider(f"STEP 3 - prediction")
+        msg.divider("STEP 3 - prediction")
         msg.info(str(prediction))
 
-    msg.good(f"Succesfully ended analysis - model looks good.")
+    msg.good("Succesfully ended analysis - model looks good.")
 
 
 def _sentences():
@@ -178,9 +178,11 @@ def _set_output_dim(model, nO):
     # simulating dim inference by directly setting the nO argument of the model
     if model.has_dim("nO") is None:
         model.set_dim("nO", nO)
-    if model.has_ref("output_layer"):
-        if model.get_ref("output_layer").has_dim("nO") is None:
-            model.get_ref("output_layer").set_dim("nO", nO)
+    if (
+        model.has_ref("output_layer")
+        and model.get_ref("output_layer").has_dim("nO") is None
+    ):
+        model.get_ref("output_layer").set_dim("nO", nO)
 
 
 def _print_model(model, print_settings):
@@ -220,10 +222,9 @@ def _print_model(model, print_settings):
 def _print_matrix(value):
     if value is None or isinstance(value, bool):
         return value
-    result = str(value.shape) + " - sample: "
+    result = f"{str(value.shape)} - sample: "
     sample_matrix = value
-    for d in range(value.ndim - 1):
+    for _ in range(sample_matrix.ndim - 1):
         sample_matrix = sample_matrix[0]
-    sample_matrix = sample_matrix[0:5]
-    result = result + str(sample_matrix)
-    return result
+    sample_matrix = sample_matrix[:5]
+    return result + str(sample_matrix)

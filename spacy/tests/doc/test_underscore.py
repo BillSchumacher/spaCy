@@ -30,7 +30,7 @@ def test_doc_underscore_getattr_setattr():
     doc._ = Underscore(Underscore.doc_extensions, doc)
     assert doc._.hello is False
     doc._.hello = True
-    assert doc._.hello is True
+    assert doc._.hello
 
 
 def test_create_span_underscore():
@@ -123,8 +123,7 @@ def test_underscore_mutable_defaults_list(en_vocab):
     assert len(doc1._.mutable) == 1
     assert doc1._.mutable[0] == "foo"
     assert len(doc2._.mutable) == 0
-    doc1._.mutable = ["bar", "baz"]
-    doc1._.mutable.append("foo")
+    doc1._.mutable = ["bar", "baz", "foo"]
     assert len(doc1._.mutable) == 3
     assert len(doc2._.mutable) == 0
 
@@ -141,8 +140,7 @@ def test_underscore_mutable_defaults_dict(en_vocab):
     token1._.mutable["foo"] = "baz"
     assert len(token1._.mutable) == 1
     assert token1._.mutable["foo"] == "baz"
-    token1._.mutable["x"] = []
-    token1._.mutable["x"].append("y")
+    token1._.mutable["x"] = ["y"]
     assert len(token1._.mutable) == 2
     assert token1._.mutable["x"] == ["y"]
     assert len(token2._.mutable) == 0
@@ -156,7 +154,7 @@ def test_underscore_dir(en_vocab):
     assert "_" in dir(doc)
     assert "test_dir" in dir(doc._)
     assert "test_dir" not in dir(doc[0]._)
-    assert "test_dir" not in dir(doc[0:2]._)
+    assert "test_dir" not in dir(doc[:2]._)
 
 
 def test_underscore_docstring(en_vocab):

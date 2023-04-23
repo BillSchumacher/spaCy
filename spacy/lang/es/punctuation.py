@@ -6,7 +6,7 @@ from ..char_classes import merge_chars
 
 _list_units = [u for u in LIST_UNITS if u != "%"]
 _units = merge_chars(" ".join(_list_units))
-_concat_quotes = CONCAT_QUOTES + "—–"
+_concat_quotes = f"{CONCAT_QUOTES}—–"
 
 
 _suffixes = (

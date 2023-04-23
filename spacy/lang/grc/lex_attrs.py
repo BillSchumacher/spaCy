@@ -306,9 +306,7 @@ _num_words = [
 
 
 def like_num(text):
-    if text.lower() in _num_words:
-        return True
-    return False
+    return text.lower() in _num_words
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

@@ -20,7 +20,7 @@ for verb_data in [
     verb_data_tc = dict(verb_data)
     verb_data_tc[ORTH] = verb_data_tc[ORTH].title()
     for data in [verb_data, verb_data_tc]:
-        _exc[data[ORTH] + "u"] = [data, {ORTH: "u", NORM: "du"}]
+        _exc[f"{data[ORTH]}u"] = [data, {ORTH: "u", NORM: "du"}]
 
 # Abbreviations for weekdays "sön." (for "söndag" / "söner")
 # are left out because they are ambiguous. The same is the case
@@ -141,7 +141,7 @@ ABBREVIATIONS = [
 # Add abbreviation for trailing punctuation too. If the abbreviation already has a trailing punctuation - skip it.
 for abbr in ABBREVIATIONS:
     if not abbr.endswith("."):
-        ABBREVIATIONS.append(abbr + ".")
+        ABBREVIATIONS.append(f"{abbr}.")
 
 for orth in ABBREVIATIONS:
     _exc[orth] = [{ORTH: orth}]
@@ -151,6 +151,6 @@ for orth in ABBREVIATIONS:
 # Sentences ending in "i." (as in "... peka i."), "m." (as in "...än 2000 m."),
 # should be tokenized as two separate tokens.
 for orth in ["i", "m"]:
-    _exc[orth + "."] = [{ORTH: orth, NORM: orth}, {ORTH: "."}]
+    _exc[f"{orth}."] = [{ORTH: orth, NORM: orth}, {ORTH: "."}]
 
 TOKENIZER_EXCEPTIONS = update_exc(BASE_EXCEPTIONS, _exc)

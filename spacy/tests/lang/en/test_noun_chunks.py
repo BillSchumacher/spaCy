@@ -27,7 +27,7 @@ def test_en_noun_chunks_not_nested(doc, en_vocab):
         for word in chunk:
             word_occurred.setdefault(word.text, 0)
             word_occurred[word.text] += 1
-    assert len(word_occurred) > 0
+    assert word_occurred
     for word, freq in word_occurred.items():
         assert freq == 1, (word, [chunk.text for chunk in doc.noun_chunks])
 
@@ -35,7 +35,7 @@ def test_en_noun_chunks_not_nested(doc, en_vocab):
 def test_noun_chunks_span(doc, en_tokenizer):
     """Test that the span.noun_chunks property works correctly"""
     doc_chunks = list(doc.noun_chunks)
-    span = doc[0:3]
+    span = doc[:3]
     span_chunks = list(span.noun_chunks)
     assert 0 < len(span_chunks) < len(doc_chunks)
     for chunk in span_chunks:

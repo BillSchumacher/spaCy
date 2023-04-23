@@ -63,7 +63,7 @@ def test_tl_tokenizer_handles_cnts(tl_tokenizer, text, length):
 )
 def test_lex_attrs_like_number(tl_tokenizer, text, match):
     tokens = tl_tokenizer(text)
-    assert all([token.like_num for token in tokens]) == match
+    assert all(token.like_num for token in tokens) == match
 
 
 @pytest.mark.xfail(reason="Not yet implemented, fails when capitalized.")

@@ -15,17 +15,13 @@ FR_BASE_EXCEPTIONS = ["aujourd'hui", "Aujourd'hui"]
 def upper_first_letter(text):
     if len(text) == 0:
         return text
-    if len(text) == 1:
-        return text.upper()
-    return text[0].upper() + text[1:]
+    return text.upper() if len(text) == 1 else text[0].upper() + text[1:]
 
 
 def lower_first_letter(text):
     if len(text) == 0:
         return text
-    if len(text) == 1:
-        return text.lower()
-    return text[0].lower() + text[1:]
+    return text.lower() if len(text) == 1 else text[0].lower() + text[1:]
 
 
 _exc = {"J.-C.": [{ORTH: "J."}, {ORTH: "-C."}]}
@@ -91,7 +87,7 @@ for verb in [
     for orth in [verb, verb.title()]:
         for pronoun in ["elle", "il", "on"]:
             token = f"{orth}-t-{pronoun}"
-            _exc[token] = [{ORTH: orth}, {ORTH: "-t"}, {ORTH: "-" + pronoun}]
+            _exc[token] = [{ORTH: orth}, {ORTH: "-t"}, {ORTH: f"-{pronoun}"}]
 
 for verb in ["est"]:
     for orth in [verb, verb.title()]:
@@ -104,14 +100,14 @@ for pre in ["qu'", "n'"]:
 
 
 for verb, pronoun in [("est", "il"), ("EST", "IL")]:
-    _exc[f"{verb}-{pronoun}"] = [{ORTH: verb}, {ORTH: "-" + pronoun}]
+    _exc[f"{verb}-{pronoun}"] = [{ORTH: verb}, {ORTH: f"-{pronoun}"}]
 
 
 for s, verb, pronoun in [("s", "est", "il"), ("S", "EST", "IL")]:
     _exc[f"{s}'{verb}-{pronoun}"] = [
-        {ORTH: s + "'"},
+        {ORTH: f"{s}'"},
         {ORTH: verb},
-        {ORTH: "-" + pronoun},
+        {ORTH: f"-{pronoun}"},
     ]
 
 
@@ -440,5 +436,5 @@ _regular_exp += [
 
 TOKENIZER_EXCEPTIONS = update_exc(BASE_EXCEPTIONS, _exc)
 TOKEN_MATCH = re.compile(
-    "(?iu)" + "|".join("(?:{})".format(m) for m in _regular_exp)
+    "(?iu)" + "|".join(f"(?:{m})" for m in _regular_exp)
 ).match

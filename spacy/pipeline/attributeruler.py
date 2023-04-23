@@ -192,10 +192,9 @@ class AttributeRuler(Pipe):
             attrs, morph_attrs = _split_morph_attrs(attrs)
             if "MORPH" not in attrs:
                 morph = self.vocab.morphology.add(morph_attrs)
-                attrs["MORPH"] = self.vocab.strings[morph]
             else:
                 morph = self.vocab.morphology.add(attrs["MORPH"])
-                attrs["MORPH"] = self.vocab.strings[morph]
+            attrs["MORPH"] = self.vocab.strings[morph]
             self.add([pattern], attrs)  # type: ignore[list-item]
 
     def load_from_morph_rules(
@@ -263,8 +262,7 @@ class AttributeRuler(Pipe):
         """All the added patterns."""
         all_patterns = []
         for i in range(len(self.attrs)):
-            p = {}
-            p["patterns"] = self.matcher.get(str(i))[1]
+            p = {"patterns": self.matcher.get(str(i))[1]}
             p["attrs"] = self._attrs_unnormed[i]  # type: ignore
             p["index"] = self.indices[i]  # type: ignore
             all_patterns.append(p)
@@ -278,8 +276,7 @@ class AttributeRuler(Pipe):
 
         DOCS: https://spacy.io/api/attributeruler#to_bytes
         """
-        serialize = {}
-        serialize["vocab"] = lambda: self.vocab.to_bytes(exclude=exclude)
+        serialize = {"vocab": lambda: self.vocab.to_bytes(exclude=exclude)}
         serialize["patterns"] = lambda: srsly.msgpack_dumps(self.patterns)
         return util.to_bytes(serialize, exclude)
 

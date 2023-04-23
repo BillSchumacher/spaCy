@@ -235,10 +235,7 @@ def _apply_mask(
     for doc in docs:
         words = []
         for token in doc:
-            if not mask[i]:
-                word = _replace_word(token.text, random_words)
-            else:
-                word = token.text
+            word = token.text if mask[i] else _replace_word(token.text, random_words)
             words.append(word)
             i += 1
         spaces = [bool(w.whitespace_) for w in doc]

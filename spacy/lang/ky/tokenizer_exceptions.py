@@ -33,7 +33,7 @@ _abbrev_exc = [
 for abbr in _abbrev_exc:
     for orth in (abbr[ORTH], abbr[ORTH].capitalize(), abbr[ORTH].upper()):
         _exc[orth] = [{ORTH: orth, NORM: abbr[NORM]}]
-        _exc[orth + "."] = [{ORTH: orth + ".", NORM: abbr[NORM]}]
+        _exc[f"{orth}."] = [{ORTH: f"{orth}.", NORM: abbr[NORM]}]
 
 for exc_data in [  # "etc." abbreviations
     {ORTH: "ж.б.у.с.", NORM: "жана башка ушул сыяктуу"},

@@ -32,10 +32,7 @@ def get_pos_from_wiktionary():
         "μετοχή": "participles",
         "ρήμα": "verbs",
     }
-    expected_parts_dict = {}
-    for expected_part in expected_parts:
-        expected_parts_dict[expected_part] = []
-
+    expected_parts_dict = {expected_part: [] for expected_part in expected_parts}
     for title, text, pageid in extract_pages(wiktionary_file_path):
         if text.startswith("#REDIRECT"):
             continue
@@ -49,15 +46,15 @@ def get_pos_from_wiktionary():
     for i in expected_parts_dict:
         with open("_{0}.py".format(proper_names_dict[i]), "w") as f:
             f.write("from __future__ import unicode_literals\n")
-            f.write('{} = set("""\n'.format(proper_names_dict[i].upper()))
+            f.write(f'{proper_names_dict[i].upper()} = set("""\n')
             words = sorted(expected_parts_dict[i])
             line = ""
             to_write = []
             for word in words:
-                if len(line + " " + word) > 79:
+                if len(f"{line} {word}") > 79:
                     to_write.append(line)
                     line = ""
                 else:
-                    line = line + " " + word
+                    line = f"{line} {word}"
             f.write("\n".join(to_write))
             f.write('\n""".split())')

@@ -41,8 +41,7 @@ def doc(en_tokenizer):
 def doc_not_parsed(en_tokenizer):
     text = "This is a sentence. This is another sentence. And a third."
     tokens = en_tokenizer(text)
-    doc = Doc(tokens.vocab, words=[t.text for t in tokens])
-    return doc
+    return Doc(tokens.vocab, words=[t.text for t in tokens])
 
 
 @pytest.mark.issue(1537)
@@ -52,10 +51,7 @@ def test_issue1537():
     doc = Doc(Vocab(), words=string.split())
     doc[0].sent_start = True
     for word in doc[1:]:
-        if word.nbor(-1).text == ".":
-            word.sent_start = True
-        else:
-            word.sent_start = False
+        word.sent_start = word.nbor(-1).text == "."
     sents = list(doc.sents)
     sent0 = sents[0].as_doc()
     sent1 = sents[1].as_doc()
@@ -80,7 +76,7 @@ def test_issue3199():
     words = ["This", "is", "a", "sentence"]
     doc = Doc(Vocab(), words=words, heads=[0] * len(words), deps=["dep"] * len(words))
     with pytest.raises(NotImplementedError):
-        list(doc[0:3].noun_chunks)
+        list(doc[:3].noun_chunks)
 
 
 @pytest.mark.issue(5152)
@@ -91,9 +87,9 @@ def test_issue5152():
     text = nlp("Talk about being boring!")
     text_var = nlp("Talk of being boring!")
     y = nlp("Let")
-    span = text[0:3]  # Talk about being
-    span_2 = text[0:3]  # Talk about being
-    span_3 = text_var[0:3]  # Talk of being
+    span = text[:3]
+    span_2 = text[:3]
+    span_3 = text_var[:3]
     token = y[0]  # Let
     with pytest.warns(UserWarning):
         assert span.similarity(token) == 0.0
@@ -192,7 +188,7 @@ def test_spans_root(doc):
 
 
 def test_spans_string_fn(doc):
-    span = doc[0:4]
+    span = doc[:4]
     assert len(span) == 4
     assert span.text == "This is a sentence"
 
@@ -212,8 +208,8 @@ def test_spans_span_sent(doc, doc_not_parsed):
     assert doc[:2].sent.root.text == "is"
     assert doc[:2].sent.text == "This is a sentence."
     assert doc[6:7].sent.root.left_edge.text == "This"
-    assert doc[0 : len(doc)].sent == list(doc.sents)[0]
-    assert list(doc[0 : len(doc)].sents) == list(doc.sents)
+    assert doc[:].sent == list(doc.sents)[0]
+    assert list(doc[:].sents) == list(doc.sents)
 
     with pytest.raises(ValueError):
         doc_not_parsed[:2].sent
@@ -221,7 +217,7 @@ def test_spans_span_sent(doc, doc_not_parsed):
     # test on manual sbd
     doc_not_parsed[0].is_sent_start = True
     doc_not_parsed[5].is_sent_start = True
-    assert doc_not_parsed[1:3].sent == doc_not_parsed[0:5]
+    assert doc_not_parsed[1:3].sent == doc_not_parsed[:5]
     assert doc_not_parsed[10:14].sent == doc_not_parsed[5:]
 
 
@@ -337,7 +333,7 @@ def test_spans_are_hashable(en_tokenizer):
     span1 = tokens[:2]
     span2 = tokens[2:4]
     assert hash(span1) != hash(span2)
-    span3 = tokens[0:2]
+    span3 = tokens[:2]
     assert hash(span3) == hash(span1)
 
 
@@ -380,8 +376,11 @@ def test_spans_by_character(doc):
         )
 
     # Span.char_span + alignment mode "contract"
-    span2 = doc[0:2].char_span(
-        span1.start_char - 3, span1.end_char, label="GPE", alignment_mode="contract"
+    span2 = doc[:2].char_span(
+        span1.start_char - 3,
+        span1.end_char,
+        label="GPE",
+        alignment_mode="contract",
     )
     assert span1.start_char == span2.start_char
     assert span1.end_char == span2.end_char
@@ -412,7 +411,7 @@ def test_span_as_doc(doc):
     assert len(span_doc.ents) == 1
 
     # partial final entity is removed
-    span_doc = doc[0:5].as_doc()
+    span_doc = doc[:5].as_doc()
     assert len(span_doc.ents) == 0
 
 
@@ -437,7 +436,7 @@ def test_span_as_doc_user_data(doc):
             assert span_doc_with[i]._.is_x is False
         else:
             assert span_doc_with[i]._.is_x is True
-    assert not any([t._.is_x for t in span_doc_without])
+    assert not any(t._.is_x for t in span_doc_without)
 
 
 def test_span_string_label_kb_id(doc):
@@ -518,15 +517,14 @@ def test_filter_spans(doc):
 
 
 def test_span_eq_hash(doc, doc_not_parsed):
-    assert doc[0:2] == doc[0:2]
-    assert doc[0:2] != doc[1:3]
-    assert doc[0:2] != doc_not_parsed[0:2]
-    assert hash(doc[0:2]) == hash(doc[0:2])
-    assert hash(doc[0:2]) != hash(doc[1:3])
-    assert hash(doc[0:2]) != hash(doc_not_parsed[0:2])
+    assert doc[:2] == doc[:2]
+    assert doc[:2] != doc[1:3]
+    assert doc[:2] != doc_not_parsed[:2]
+    assert hash(doc[:2]) != hash(doc[1:3])
+    assert hash(doc[:2]) != hash(doc_not_parsed[:2])
 
     # check that an out-of-bounds is not equivalent to the span of the full doc
-    assert doc[0 : len(doc)] != doc[len(doc) : len(doc) + 1]
+    assert doc[:] != doc[len(doc) : len(doc) + 1]
 
 
 def test_span_boundaries(doc):
@@ -540,7 +538,7 @@ def test_span_boundaries(doc):
     with pytest.raises(IndexError):
         span[5]
 
-    empty_span_0 = doc[0:0]
+    empty_span_0 = doc[:0]
     assert empty_span_0.text == ""
     assert empty_span_0.start == 0
     assert empty_span_0.end == 0
@@ -594,9 +592,9 @@ def test_span_with_vectors(doc):
     ]
     add_vecs_to_vocab(doc.vocab, vectors)
     # 0-length span
-    assert_array_equal(ops.to_numpy(doc[0:0].vector), numpy.zeros((3,)))
+    assert_array_equal(ops.to_numpy(doc[:0].vector), numpy.zeros((3,)))
     # longer span with no vector
-    assert_array_equal(ops.to_numpy(doc[0:4].vector), numpy.zeros((3,)))
+    assert_array_equal(ops.to_numpy(doc[:4].vector), numpy.zeros((3,)))
     # single-token span with vector
     assert_array_equal(ops.to_numpy(doc[10:11].vector), [-1, -1, -1])
     doc.vocab.vectors = prev_vectors
@@ -690,7 +688,7 @@ def test_span_sents_not_parsed(doc_not_parsed):
 
 
 def test_span_group_copy(doc):
-    doc.spans["test"] = [doc[0:1], doc[2:4]]
+    doc.spans["test"] = [doc[:1], doc[2:4]]
     assert len(doc.spans["test"]) == 2
     doc_copy = doc.copy()
     # check that the spans were indeed copied

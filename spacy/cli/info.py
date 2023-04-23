@@ -121,8 +121,7 @@ def info_model(model: str, *, silent: bool = True) -> Dict[str, Any]:
         meta["source"] = str(model_path.resolve())
     else:
         meta["source"] = str(model_path)
-    download_url = info_installed_model_url(model)
-    if download_url:
+    if download_url := info_installed_model_url(model):
         meta["download_url"] = download_url
     return {
         k: v for k, v in meta.items() if k not in ("accuracy", "performance", "speed")
@@ -152,7 +151,7 @@ def info_model_url(model: str) -> Dict[str, Any]:
     version = get_latest_version(model)
 
     filename = get_model_filename(model, version)
-    download_url = about.__download_url__ + "/" + filename
+    download_url = f"{about.__download_url__}/{filename}"
     release_tpl = "https://github.com/explosion/spacy-models/releases/tag/{m}-{v}"
     release_url = release_tpl.format(m=model, v=version)
     return {"download_url": download_url, "release_url": release_url}

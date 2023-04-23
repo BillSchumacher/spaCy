@@ -10,11 +10,18 @@ from spacy.lang.char_classes import ALPHA
 )
 def test_issue768(text, expected_tokens):
     """Allow zero-width 'infix' token during the tokenization process."""
-    SPLIT_INFIX = r"(?<=[{a}]\')(?=[{a}])".format(a=ALPHA)
+
 
     class FrenchTest(Language):
+
+
+
         class Defaults(BaseDefaults):
+            SPLIT_INFIX = r"(?<=[{a}]\')(?=[{a}])".format(a=ALPHA)
+
             infixes = TOKENIZER_INFIXES + [SPLIT_INFIX]
+
+
 
     fr_tokenizer_w_infix = FrenchTest().tokenizer
     tokens = fr_tokenizer_w_infix(text)

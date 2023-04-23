@@ -292,7 +292,7 @@ def test_util_minibatch(doc_sizes, expected_batches):
 
     max_size = batch_size + batch_size * tol
     for batch in batches:
-        assert sum([len(doc) for doc in batch]) < max_size
+        assert sum(len(doc) for doc in batch) < max_size
 
 
 @pytest.mark.parametrize(
