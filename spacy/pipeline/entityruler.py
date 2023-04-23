@@ -171,9 +171,9 @@ class EntityRuler(Pipe):
             warnings.filterwarnings("ignore", message="\\[W036")
             matches = list(self.matcher(doc)) + list(self.phrase_matcher(doc))
 
-        final_matches = set(
-            [(m_id, start, end) for m_id, start, end in matches if start != end]
-        )
+        final_matches = {
+            (m_id, start, end) for m_id, start, end in matches if start != end
+        }
         get_sort_key = lambda m: (m[2] - m[1], -m[1])
         final_matches = sorted(final_matches, key=get_sort_key, reverse=True)
         return final_matches
@@ -194,9 +194,7 @@ class EntityRuler(Pipe):
                 else:
                     span = Span(doc, start, end, label=match_id)
                 new_entities.append(span)
-                entities = [
-                    e for e in entities if not (e.start < end and e.end > start)
-                ]
+                entities = [e for e in entities if e.start >= end or e.end <= start]
                 seen_tokens.update(range(start, end))
         doc.ents = entities + new_entities
 
@@ -296,12 +294,15 @@ class EntityRuler(Pipe):
 
         # disable the nlp components after this one in case they hadn't been initialized / deserialised yet
         try:
-            current_index = -1
-            for i, (name, pipe) in enumerate(self.nlp.pipeline):
-                if self == pipe:
-                    current_index = i
-                    break
-            subsequent_pipes = [pipe for pipe in self.nlp.pipe_names[current_index:]]
+            current_index = next(
+                (
+                    i
+                    for i, (name, pipe) in enumerate(self.nlp.pipeline)
+                    if self == pipe
+                ),
+                -1,
+            )
+            subsequent_pipes = list(self.nlp.pipe_names[current_index:])
         except ValueError:
             subsequent_pipes = []
         with self.nlp.select_pipes(disable=subsequent_pipes):
@@ -484,11 +485,10 @@ class EntityRuler(Pipe):
         self.clear()
         depr_patterns_path = path.with_suffix(".jsonl")
         if path.suffix == ".jsonl":  # user provides a jsonl
-            if path.is_file:
-                patterns = srsly.read_jsonl(path)
-                self.add_patterns(patterns)
-            else:
+            if not path.is_file:
                 raise ValueError(Errors.E1023.format(path=path))
+            patterns = srsly.read_jsonl(path)
+            self.add_patterns(patterns)
         elif depr_patterns_path.is_file():
             patterns = srsly.read_jsonl(depr_patterns_path)
             self.add_patterns(patterns)

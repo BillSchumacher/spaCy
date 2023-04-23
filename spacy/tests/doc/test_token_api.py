@@ -99,7 +99,7 @@ def test_doc_token_api_ancestors(en_vocab):
     doc = Doc(en_vocab, words=words, heads=heads, deps=deps)
     assert [t.text for t in doc[6].ancestors] == ["dog", "saw"]
     assert [t.text for t in doc[1].ancestors] == ["saw"]
-    assert [t.text for t in doc[2].ancestors] == []
+    assert not [t.text for t in doc[2].ancestors]
     assert doc[2].is_ancestor(doc[7])
     assert not doc[6].is_ancestor(doc[2])
 
@@ -183,7 +183,7 @@ def test_is_sent_start(en_tokenizer):
     doc = en_tokenizer("This is a sentence. This is another.")
     assert doc[5].is_sent_start is None
     doc[5].is_sent_start = True
-    assert doc[5].is_sent_start is True
+    assert doc[5].is_sent_start
     assert len(list(doc.sents)) == 2
 
 
@@ -256,8 +256,8 @@ def test_token_api_non_conjuncts(en_vocab):
     heads = [1, 1, 1]
     deps = ["nsubj", "ROOT", "punct"]
     doc = Doc(en_vocab, words=words, heads=heads, deps=deps)
-    assert [w.text for w in doc[0].conjuncts] == []
-    assert [w.text for w in doc[1].conjuncts] == []
+    assert not [w.text for w in doc[0].conjuncts]
+    assert not [w.text for w in doc[1].conjuncts]
 
 
 def test_missing_head_dep(en_vocab):

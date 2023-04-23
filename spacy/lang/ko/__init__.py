@@ -57,10 +57,7 @@ class KoreanTokenizer(DummyTokenizer):
         for token, dtoken in zip(doc, dtokens):
             first_tag, sep, eomi_tags = dtoken["tag"].partition("+")
             token.tag_ = first_tag  # stem(어간) or pre-final(선어말 어미)
-            if token.tag_ in TAG_MAP:
-                token.pos = TAG_MAP[token.tag_][POS]
-            else:
-                token.pos = X
+            token.pos = TAG_MAP[token.tag_][POS] if token.tag_ in TAG_MAP else X
             token.lemma_ = dtoken["lemma"]
         doc.user_data["full_tags"] = [dt["tag"] for dt in dtokens]
         return doc

@@ -125,21 +125,14 @@ def like_num(text):
         if num.isdigit() and denom.isdigit():
             return True
     text_lower = text.lower()
-    if text_lower in _num_words:
-        return True
-    if text_lower in _ordinal_words:
-        return True
-    return False
+    return True if text_lower in _num_words else text_lower in _ordinal_words
 
 
 def is_currency(text):
     text_lower = text.lower()
     if text in _currency_words:
         return True
-    for char in text:
-        if unicodedata.category(char) != "Sc":
-            return False
-    return True
+    return all(unicodedata.category(char) == "Sc" for char in text)
 
 
 LEX_ATTRS = {LIKE_NUM: like_num, IS_CURRENCY: is_currency}

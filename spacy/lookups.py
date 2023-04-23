@@ -26,17 +26,18 @@ def load_lookups(lang: str, tables: List[str], strict: bool = True) -> "Lookups"
     # TODO: import spacy_lookups_data instead of going via entry points here?
     lookups = Lookups()
     if lang not in registry.lookups:
-        if strict and len(tables) > 0:
+        if strict and tables:
             raise ValueError(Errors.E955.format(table=", ".join(tables), lang=lang))
-        return lookups
+        else:
+            return lookups
     data = registry.lookups.get(lang)
     for table in tables:
-        if table not in data:
-            if strict:
-                raise ValueError(Errors.E955.format(table=table, lang=lang))
-            language_data = {}  # type: ignore[var-annotated]
-        else:
+        if table in data:
             language_data = load_language_data(data[table])  # type: ignore[assignment]
+        elif strict:
+            raise ValueError(Errors.E955.format(table=table, lang=lang))
+        else:
+            language_data = {}  # type: ignore[var-annotated]
         lookups.add_table(table, language_data)
     return lookups
 
@@ -116,7 +117,7 @@ class Table(OrderedDict):
         key = get_string_id(key)
         return OrderedDict.get(self, key, default)  # type:ignore[arg-type]
 
-    def __contains__(self, key: Union[str, int]) -> bool:  # type: ignore[override]
+    def __contains__(self, key: Union[str, int]) -> bool:    # type: ignore[override]
         """Check whether a key is in the table. String keys will be hashed.
 
         key (str / int): The key to check.
@@ -124,9 +125,7 @@ class Table(OrderedDict):
         """
         key = get_string_id(key)
         # This can give a false positive, so we need to check it after
-        if key not in self.bloom:
-            return False
-        return OrderedDict.__contains__(self, key)
+        return False if key not in self.bloom else OrderedDict.__contains__(self, key)
 
     def to_bytes(self) -> bytes:
         """Serialize table to a bytestring.

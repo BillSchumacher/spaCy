@@ -54,7 +54,7 @@ _other_exc = {
     "ta'at": [{ORTH: "ta'at", NORM: "taat"}],
 }
 
-_exc.update(_other_exc)
+_exc |= _other_exc
 
 for orth in [
     "A.AB.",

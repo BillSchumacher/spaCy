@@ -38,10 +38,13 @@ def test_morph_props(i_has):
 
 
 def test_morph_iter(i_has):
-    assert set(i_has[0].morph) == set(["PronType=prs"])
-    assert set(i_has[1].morph) == set(
-        ["Number=sing", "Person=three", "Tense=pres", "VerbForm=fin"]
-    )
+    assert set(i_has[0].morph) == {"PronType=prs"}
+    assert set(i_has[1].morph) == {
+        "Number=sing",
+        "Person=three",
+        "Tense=pres",
+        "VerbForm=fin",
+    }
 
 
 def test_morph_get(i_has):
@@ -86,12 +89,12 @@ def test_morph_property(tokenizer):
 
     # empty morph is equivalent to "_"
     doc[0].set_morph("")
-    assert str(doc[0].morph) == ""
+    assert not str(doc[0].morph)
     assert doc.to_array(["MORPH"])[0] == tokenizer.vocab.strings["_"]
 
     # "_" morph is also equivalent to empty morph
     doc[0].set_morph("_")
-    assert str(doc[0].morph) == ""
+    assert not str(doc[0].morph)
     assert doc.to_array(["MORPH"])[0] == tokenizer.vocab.strings["_"]
 
     # set through existing hash with token.morph

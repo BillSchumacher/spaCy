@@ -197,8 +197,7 @@ class TextCategorizer(TrainablePipe):
             # Handle cases where there are no tokens in any docs.
             tensors = [doc.tensor for doc in docs]
             xp = self.model.ops.xp
-            scores = xp.zeros((len(list(docs)), len(self.labels)))
-            return scores
+            return xp.zeros((len(list(docs)), len(self.labels)))
         scores = self.model.predict(docs)
         scores = self.model.ops.asarray(scores)
         return scores
@@ -393,7 +392,7 @@ class TextCategorizer(TrainablePipe):
         doc_sample = [eg.reference for eg in subbatch]
         label_sample, _ = self._examples_to_truth(subbatch)
         self._require_labels()
-        assert len(doc_sample) > 0, Errors.E923.format(name=self.name)
+        assert doc_sample, Errors.E923.format(name=self.name)
         assert len(label_sample) > 0, Errors.E923.format(name=self.name)
         self.model.initialize(X=doc_sample, Y=label_sample)
 
@@ -404,5 +403,5 @@ class TextCategorizer(TrainablePipe):
             if vals.count(1.0) > 1:
                 raise ValueError(Errors.E895.format(value=ex.reference.cats))
             for val in vals:
-                if not (val == 1.0 or val == 0.0):
+                if val not in [1.0, 0.0]:
                     raise ValueError(Errors.E851.format(val=val))

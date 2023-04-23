@@ -223,11 +223,7 @@ class Lemmatizer(Pipe):
                 rules_table.get(univ_pos),
             )
         ):
-            if univ_pos == "propn":
-                return [string]
-            else:
-                return [string.lower()]
-
+            return [string] if univ_pos == "propn" else [string.lower()]
         index = index_table.get(univ_pos, {})
         exceptions = exc_table.get(univ_pos, {})
         rules = rules_table.get(univ_pos, {})
@@ -281,8 +277,7 @@ class Lemmatizer(Pipe):
 
         DOCS: https://spacy.io/api/lemmatizer#to_disk
         """
-        serialize = {}
-        serialize["vocab"] = lambda p: self.vocab.to_disk(p, exclude=exclude)
+        serialize = {"vocab": lambda p: self.vocab.to_disk(p, exclude=exclude)}
         serialize["lookups"] = lambda p: self.lookups.to_disk(p)
         util.to_disk(path, serialize, exclude)
 
@@ -297,8 +292,9 @@ class Lemmatizer(Pipe):
 
         DOCS: https://spacy.io/api/lemmatizer#from_disk
         """
-        deserialize: Dict[str, Callable[[Any], Any]] = {}
-        deserialize["vocab"] = lambda p: self.vocab.from_disk(p, exclude=exclude)
+        deserialize: Dict[str, Callable[[Any], Any]] = {
+            "vocab": lambda p: self.vocab.from_disk(p, exclude=exclude)
+        }
         deserialize["lookups"] = lambda p: self.lookups.from_disk(p)
         util.from_disk(path, deserialize, exclude)
         self._validate_tables()
@@ -312,8 +308,7 @@ class Lemmatizer(Pipe):
 
         DOCS: https://spacy.io/api/lemmatizer#to_bytes
         """
-        serialize = {}
-        serialize["vocab"] = lambda: self.vocab.to_bytes(exclude=exclude)
+        serialize = {"vocab": lambda: self.vocab.to_bytes(exclude=exclude)}
         serialize["lookups"] = self.lookups.to_bytes
         return util.to_bytes(serialize, exclude)
 
@@ -328,8 +323,9 @@ class Lemmatizer(Pipe):
 
         DOCS: https://spacy.io/api/lemmatizer#from_bytes
         """
-        deserialize: Dict[str, Callable[[Any], Any]] = {}
-        deserialize["vocab"] = lambda b: self.vocab.from_bytes(b, exclude=exclude)
+        deserialize: Dict[str, Callable[[Any], Any]] = {
+            "vocab": lambda b: self.vocab.from_bytes(b, exclude=exclude)
+        }
         deserialize["lookups"] = lambda b: self.lookups.from_bytes(b)
         util.from_bytes(bytes_data, deserialize, exclude)
         self._validate_tables()

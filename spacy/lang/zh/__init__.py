@@ -91,7 +91,7 @@ class ChineseTokenizer(DummyTokenizer):
 
     def __call__(self, text: str) -> Doc:
         if self.segmenter == Segmenter.jieba:
-            words = list([x for x in self.jieba_seg.cut(text, cut_all=False) if x])  # type: ignore[union-attr]
+            words = [x for x in self.jieba_seg.cut(text, cut_all=False) if x]
             (words, spaces) = util.get_words_and_spaces(words, text)
             return Doc(self.vocab, words=words, spaces=spaces)
         elif self.segmenter == Segmenter.pkuseg:
@@ -316,7 +316,7 @@ def try_pkuseg_import(pkuseg_model: Optional[str], pkuseg_user_dict: Optional[st
         import spacy_pkuseg
 
     except ImportError:
-        msg = "spacy-pkuseg not installed. To use pkuseg, " + _PKUSEG_INSTALL_MSG
+        msg = f"spacy-pkuseg not installed. To use pkuseg, {_PKUSEG_INSTALL_MSG}"
         raise ImportError(msg) from None
     try:
         return spacy_pkuseg.pkuseg(pkuseg_model, user_dict=pkuseg_user_dict)

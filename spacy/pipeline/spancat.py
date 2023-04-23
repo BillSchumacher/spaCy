@@ -103,7 +103,7 @@ def ngram_suggester(
                 assert spans[-1].ndim == 2, spans[-1].shape
         lengths.append(length)
     lengths_array = ops.asarray1i(lengths)
-    if len(spans) > 0:
+    if spans:
         output = Ragged(ops.xp.vstack(spans), lengths_array)
     else:
         output = Ragged(ops.xp.zeros((0, 0), dtype="i"), lengths_array)
@@ -293,10 +293,7 @@ class _Intervals:
 
     def __contains__(self, rang):
         i, j = rang
-        for e in range(i, j):
-            if e in self.ranges:
-                return True
-        return False
+        return any(e in self.ranges for e in range(i, j))
 
 
 class SpanCategorizer(TrainablePipe):
@@ -389,11 +386,10 @@ class SpanCategorizer(TrainablePipe):
             "output_layer"
         ).has_dim("nO"):
             nO = self.model.get_ref("output_layer").get_dim("nO")
-        if nO is not None and nO == self._n_labels:
-            if not self.is_resizable:
-                raise ValueError(
-                    Errors.E922.format(name=self.name, nO=self.model.get_dim("nO"))
-                )
+        if nO is not None and nO == self._n_labels and not self.is_resizable:
+            raise ValueError(
+                Errors.E922.format(name=self.name, nO=self.model.get_dim("nO"))
+            )
 
     def add_label(self, label: str) -> int:
         """Add a new label to the pipe.
@@ -436,18 +432,12 @@ class SpanCategorizer(TrainablePipe):
     @property
     def _n_labels(self) -> int:
         """RETURNS (int): Number of labels."""
-        if self.add_negative_label:
-            return len(self.labels) + 1
-        else:
-            return len(self.labels)
+        return len(self.labels) + 1 if self.add_negative_label else len(self.labels)
 
     @property
     def _negative_label_i(self) -> Union[int, None]:
         """RETURNS (Union[int, None]): Index of the negative label."""
-        if self.add_negative_label:
-            return len(self.label_data)
-        else:
-            return None
+        return len(self.label_data) if self.add_negative_label else None
 
     def predict(self, docs: Iterable[Doc]):
         """Apply the pipeline's model to a batch of docs, without modifying them.
@@ -694,10 +684,9 @@ class SpanCategorizer(TrainablePipe):
             start = indices[i, 0]
             end = indices[i, 1]
             for j, keep in enumerate(keeps[i]):
-                if keep:
-                    if j != self._negative_label_i:
-                        spans.append(Span(doc, start, end, label=self.labels[j]))
-                        attrs_scores.append(scores[i, j])
+                if keep and j != self._negative_label_i:
+                    spans.append(Span(doc, start, end, label=self.labels[j]))
+                    attrs_scores.append(scores[i, j])
         spans.attrs["scores"] = numpy.array(attrs_scores)
         return spans
 

@@ -41,13 +41,10 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
             right_childs = list(word.rights)
             right_child = right_childs[0] if right_childs else None
 
-            if right_child:
-                if right_child.dep == adj_label:
-                    right_end = right_child.right_edge
-                elif right_child.dep in np_modifs:  # Check if we can expand to right
-                    right_end = word.right_edge
-                else:
-                    right_end = word
+            if right_child and right_child.dep == adj_label:
+                right_end = right_child.right_edge
+            elif right_child and right_child.dep in np_modifs:  # Check if we can expand to right
+                right_end = word.right_edge
             else:
                 right_end = word
             prev_end = right_end.i

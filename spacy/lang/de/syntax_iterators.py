@@ -19,7 +19,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
     if not doc.has_annotation("DEP"):
         raise ValueError(Errors.E029)
     np_label = doc.vocab.strings.add("NP")
-    np_deps = set(doc.vocab.strings.add(label) for label in labels)
+    np_deps = {doc.vocab.strings.add(label) for label in labels}
     close_app = doc.vocab.strings.add("nk")
     rbracket = 0
     prev_end = -1

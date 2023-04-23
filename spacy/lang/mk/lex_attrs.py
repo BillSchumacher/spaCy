@@ -117,22 +117,24 @@ def like_num(text):
     if text_lower in _num_words:
         return True
 
-    if text_lower.endswith(("а", "о", "и")):
-        if text_lower[:-1] in _num_words:
-            return True
+    if text_lower.endswith(("а", "о", "и")) and text_lower[:-1] in _num_words:
+        return True
 
-    if text_lower.endswith(("ти", "та", "то", "на")):
-        if text_lower[:-2] in _num_words:
-            return True
+    if (
+        text_lower.endswith(("ти", "та", "то", "на"))
+        and text_lower[:-2] in _num_words
+    ):
+        return True
 
-    if text_lower.endswith(("ата", "иот", "ите", "ина", "чки")):
-        if text_lower[:-3] in _num_words:
-            return True
+    if (
+        text_lower.endswith(("ата", "иот", "ите", "ина", "чки"))
+        and text_lower[:-3] in _num_words
+    ):
+        return True
 
-    if text_lower.endswith(("мина", "тина")):
-        if text_lower[:-4] in _num_words:
-            return True
-    return False
+    return bool(
+        text_lower.endswith(("мина", "тина")) and text_lower[:-4] in _num_words
+    )
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

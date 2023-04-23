@@ -88,10 +88,7 @@ def sented_doc():
     nlp = English()
     doc = nlp(text)
     for i in range(len(doc)):
-        if i % 3 == 0:
-            doc[i].is_sent_start = True
-        else:
-            doc[i].is_sent_start = False
+        doc[i].is_sent_start = i % 3 == 0
     return doc
 
 

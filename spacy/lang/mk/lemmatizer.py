@@ -27,11 +27,7 @@ class MacedonianLemmatizer(Lemmatizer):
                 rules_table.get(univ_pos),
             )
         ):
-            if univ_pos == "propn":
-                return [string]
-            else:
-                return [string.lower()]
-
+            return [string] if univ_pos == "propn" else [string.lower()]
         index = index_table.get(univ_pos, {})
         exceptions = exc_table.get(univ_pos, {})
         rules = rules_table.get(univ_pos, [])

@@ -47,7 +47,7 @@ def span_maker_forward(model, docs: List[Doc], is_train) -> Tuple[Ragged, Callab
     for doc in docs:
         cands = []
         try:
-            sentences = [s for s in doc.sents]
+            sentences = list(doc.sents)
         except ValueError:
             # no sentence info, normal in initialization
             for tok in doc:

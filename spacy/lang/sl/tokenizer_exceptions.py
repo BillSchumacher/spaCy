@@ -3,8 +3,6 @@ from ..tokenizer_exceptions import BASE_EXCEPTIONS
 from ...symbols import ORTH, NORM
 from ...util import update_exc
 
-_exc: Dict[str, List[Dict]] = {}
-
 _other_exc = {
     "t.i.": [{ORTH: "t.", NORM: "tako"}, {ORTH: "i.", NORM: "imenovano"}],
     "t.j.": [{ORTH: "t.", NORM: "to"}, {ORTH: "j.", NORM: "je"}],
@@ -46,9 +44,7 @@ _other_exc = {
     "Le-tega": [{ORTH: "Le"}, {ORTH: "-"}, {ORTH: "tega"}],
 }
 
-_exc.update(_other_exc)
-
-
+_exc: Dict[str, List[Dict]] = {} | _other_exc
 for exc_data in [
     {ORTH: "adm.", NORM: "administracija"},
     {ORTH: "aer.", NORM: "aeronavtika"},

@@ -42,8 +42,7 @@ def _stream_docbin(path: Path, vocab: Vocab) -> Iterable[Doc]:
     Stream Doc objects from DocBin.
     """
     docbin = DocBin().from_disk(path)
-    for doc in docbin.get_docs(vocab):
-        yield doc
+    yield from docbin.get_docs(vocab)
 
 
 def _stream_jsonl(path: Path, field: str) -> Iterable[str]:
@@ -64,8 +63,7 @@ def _stream_texts(paths: Iterable[Path]) -> Iterable[str]:
     """
     for path in paths:
         with open(path, "r") as fin:
-            text = fin.read()
-            yield text
+            yield fin.read()
 
 
 @app.command("apply")
@@ -133,7 +131,7 @@ def apply(
             streams.append(_stream_jsonl(path, json_field))
         else:
             text_files.append(path)
-    if len(text_files) > 0:
+    if text_files:
         streams.append(_stream_texts(text_files))
     datagen = cast(DocOrStrStream, chain(*streams))
     for doc in tqdm.tqdm(nlp.pipe(datagen, batch_size=batch_size, n_process=n_process)):

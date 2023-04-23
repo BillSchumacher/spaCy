@@ -23,11 +23,7 @@ def like_num(text):
         return True
     if roman_numerals_compile.match(text):
         return True
-    if text.lower() in _num_words:
-        return True
-    if text.lower() in _ordinal_words:
-        return True
-    return False
+    return True if text.lower() in _num_words else text.lower() in _ordinal_words
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

@@ -56,7 +56,7 @@ class SpanRenderer:
                 user_color = user_color()
             if not isinstance(user_color, dict):
                 raise ValueError(Errors.E925.format(obj=type(user_color)))
-            colors.update(user_color)
+            colors |= user_color
         colors.update(options.get("colors", {}))
         self.default_color = DEFAULT_ENTITY_COLOR
         self.colors = {label.upper(): color for label, color in colors.items()}
@@ -70,21 +70,18 @@ class SpanRenderer:
         self.span_label_offset = options.get("span_label_offset", 20)
         self.offset_step = options.get("top_offset_step", 17)
 
-        # Set up which templates will be used
-        template = options.get("template")
-        if template:
+        if template := options.get("template"):
             self.span_template = template["span"]
             self.span_slice_template = template["slice"]
             self.span_start_template = template["start"]
+        elif self.direction == "rtl":
+            self.span_template = TPL_SPAN_RTL
+            self.span_slice_template = TPL_SPAN_SLICE_RTL
+            self.span_start_template = TPL_SPAN_START_RTL
         else:
-            if self.direction == "rtl":
-                self.span_template = TPL_SPAN_RTL
-                self.span_slice_template = TPL_SPAN_SLICE_RTL
-                self.span_start_template = TPL_SPAN_START_RTL
-            else:
-                self.span_template = TPL_SPAN
-                self.span_slice_template = TPL_SPAN_SLICE
-                self.span_start_template = TPL_SPAN_START
+            self.span_template = TPL_SPAN
+            self.span_slice_template = TPL_SPAN_SLICE
+            self.span_start_template = TPL_SPAN_START
 
     def render(
         self, parsed: List[Dict[str, Any]], page: bool = False, minify: bool = False
@@ -109,9 +106,7 @@ class SpanRenderer:
             markup = TPL_PAGE.format(content=docs, lang=self.lang, dir=self.direction)
         else:
             markup = "".join(rendered)
-        if minify:
-            return minify_html(markup)
-        return markup
+        return minify_html(markup) if minify else markup
 
     def render_spans(
         self,
@@ -148,8 +143,7 @@ class SpanRenderer:
         for idx, token in enumerate(tokens):
             # Identify if a token belongs to a Span (and which) and if it's a
             # start token of said Span. We'll use this for the final HTML render
-            token_markup: Dict[str, Any] = {}
-            token_markup["text"] = token
+            token_markup: Dict[str, Any] = {"text": token}
             concurrent_spans = 0
             entities = []
             for span in spans:
@@ -308,9 +302,7 @@ class DependencyRenderer:
             )
         else:
             markup = "".join(rendered)
-        if minify:
-            return minify_html(markup)
-        return markup
+        return minify_html(markup) if minify else markup
 
     def render_svg(
         self,
@@ -454,7 +446,7 @@ class DependencyRenderer:
         RETURNS (dict): Arc levels keyed by (start, end, label).
         """
         arcs = [dict(t) for t in {tuple(sorted(arc.items())) for arc in arcs}]
-        length = max([arc["end"] for arc in arcs], default=0)
+        length = max((arc["end"] for arc in arcs), default=0)
         max_level = [0] * length
         levels = {}
         for arc in sorted(arcs, key=lambda arc: arc["end"] - arc["start"]):
@@ -484,7 +476,7 @@ class EntityRenderer:
                 user_color = user_color()
             if not isinstance(user_color, dict):
                 raise ValueError(Errors.E925.format(obj=type(user_color)))
-            colors.update(user_color)
+            colors |= user_color
         colors.update(options.get("colors", {}))
         self.default_color = DEFAULT_ENTITY_COLOR
         self.colors = {label.upper(): color for label, color in colors.items()}
@@ -493,14 +485,10 @@ class EntityRenderer:
             self.ents = [ent.upper() for ent in self.ents]
         self.direction = DEFAULT_DIR
         self.lang = DEFAULT_LANG
-        template = options.get("template")
-        if template:
+        if template := options.get("template"):
             self.ent_template = template
         else:
-            if self.direction == "rtl":
-                self.ent_template = TPL_ENT_RTL
-            else:
-                self.ent_template = TPL_ENT
+            self.ent_template = TPL_ENT_RTL if self.direction == "rtl" else TPL_ENT
 
     def render(
         self, parsed: List[Dict[str, Any]], page: bool = False, minify: bool = False
@@ -524,9 +512,7 @@ class EntityRenderer:
             markup = TPL_PAGE.format(content=docs, lang=self.lang, dir=self.direction)
         else:
             markup = "".join(rendered)
-        if minify:
-            return minify_html(markup)
-        return markup
+        return minify_html(markup) if minify else markup
 
     def render_ents(
         self, text: str, spans: List[Dict[str, Any]], title: Optional[str]
@@ -561,7 +547,7 @@ class EntityRenderer:
                     "bg": color,
                     "kb_link": kb_link,
                 }
-                ent_settings.update(additional_params)
+                ent_settings |= additional_params
                 markup += self.ent_template.format(**ent_settings)
             else:
                 markup += entity

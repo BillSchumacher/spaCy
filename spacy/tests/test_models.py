@@ -29,8 +29,7 @@ def get_textcat_cnn_kwargs():
 def get_all_params(model):
     params = []
     for node in model.walk():
-        for name in node.param_names:
-            params.append(node.get_param(name).ravel())
+        params.extend(node.get_param(name).ravel() for name in node.param_names)
     return node.ops.xp.concatenate(params)
 
 
@@ -81,7 +80,7 @@ def test_multi_hash_embed():
     # Check they look at different columns.
     assert list(sorted(he.attrs["column"] for he in hash_embeds)) == [0, 1, 2]
     # Check they use different seeds
-    assert len(set(he.attrs["seed"] for he in hash_embeds)) == 3
+    assert len({he.attrs["seed"] for he in hash_embeds}) == 3
     # Check they all have the same number of rows
     assert [he.get_dim("nV") for he in hash_embeds] == [500, 500, 500]
     # Now try with different row factors
@@ -255,8 +254,7 @@ def test_spancat_model_forward_backward(nO=5):
     spans_list = []
     lengths = []
     for doc in docs:
-        spans_list.append(doc[:2])
-        spans_list.append(doc[1:4])
+        spans_list.extend((doc[:2], doc[1:4]))
         lengths.append(2)
     spans = Ragged(
         tok2vec.ops.asarray([[s.start, s.end] for s in spans_list], dtype="i"),

@@ -4,28 +4,27 @@ References:
     (countries, occupations, fields of studies and more).
 """
 
+
 from ...symbols import ORTH, NORM
 
 
-_exc = {}
-
-# measurements
-for abbr in [
-    {ORTH: "м", NORM: "метър"},
-    {ORTH: "мм", NORM: "милиметър"},
-    {ORTH: "см", NORM: "сантиметър"},
-    {ORTH: "дм", NORM: "дециметър"},
-    {ORTH: "км", NORM: "километър"},
-    {ORTH: "кг", NORM: "килограм"},
-    {ORTH: "мг", NORM: "милиграм"},
-    {ORTH: "г", NORM: "грам"},
-    {ORTH: "т", NORM: "тон"},
-    {ORTH: "хл", NORM: "хектолиър"},
-    {ORTH: "дкл", NORM: "декалитър"},
-    {ORTH: "л", NORM: "литър"},
-]:
-    _exc[abbr[ORTH]] = [abbr]
-
+_exc = {
+    abbr[ORTH]: [abbr]
+    for abbr in [
+        {ORTH: "м", NORM: "метър"},
+        {ORTH: "мм", NORM: "милиметър"},
+        {ORTH: "см", NORM: "сантиметър"},
+        {ORTH: "дм", NORM: "дециметър"},
+        {ORTH: "км", NORM: "километър"},
+        {ORTH: "кг", NORM: "килограм"},
+        {ORTH: "мг", NORM: "милиграм"},
+        {ORTH: "г", NORM: "грам"},
+        {ORTH: "т", NORM: "тон"},
+        {ORTH: "хл", NORM: "хектолиър"},
+        {ORTH: "дкл", NORM: "декалитър"},
+        {ORTH: "л", NORM: "литър"},
+    ]
+}
 # line abbreviations
 for abbr in [
     {ORTH: "г-жа", NORM: "госпожа"},

@@ -41,7 +41,7 @@ def pytest_runtest_setup(item):
             issue_nos = [int(issue.strip()) for issue in issues.split(",")]
             # Get all issues specified by decorators and check if they're provided
             issue_refs = [mark.args[0] for mark in item.iter_markers(name="issue")]
-            if not any([ref in issue_nos for ref in issue_refs]):
+            if all(ref not in issue_nos for ref in issue_refs):
                 pytest.skip(f"not referencing specified issues: {issue_nos}")
         else:
             pytest.skip("not referencing any issues")

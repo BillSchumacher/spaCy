@@ -135,15 +135,14 @@ def package(
         msg.good("Loaded meta.json from file", meta_path)
     else:
         meta = generate_meta(meta, msg)
-    errors = validate(ModelMetaSchema, meta)
-    if errors:
+    if errors := validate(ModelMetaSchema, meta):
         msg.fail("Invalid pipeline meta.json")
         print("\n".join(errors))
         sys.exit(1)
     model_name = meta["name"]
     if not model_name.startswith(meta["lang"] + "_"):
         model_name = f"{meta['lang']}_{model_name}"
-    model_name_v = model_name + "-" + meta["version"]
+    model_name_v = f"{model_name}-" + meta["version"]
     main_path = output_dir / model_name_v
     package_path = main_path / model_name
     if package_path.exists():
@@ -186,13 +185,13 @@ def package(
         with util.working_dir(main_path):
             util.run_command([sys.executable, "setup.py", "sdist"], capture=False)
         zip_file = main_path / "dist" / f"{model_name_v}{SDIST_SUFFIX}"
-        msg.good(f"Successfully created zipped Python package", zip_file)
+        msg.good("Successfully created zipped Python package", zip_file)
     if create_wheel:
         with util.working_dir(main_path):
             util.run_command([sys.executable, "setup.py", "bdist_wheel"], capture=False)
         wheel_name_squashed = re.sub("_+", "_", model_name_v)
         wheel = main_path / "dist" / f"{wheel_name_squashed}{WHEEL_SUFFIX}"
-        msg.good(f"Successfully created binary wheel", wheel)
+        msg.good("Successfully created binary wheel", wheel)
     if "__" in model_name:
         msg.warn(
             f"Model name ('{model_name}') contains a run of underscores. "
@@ -243,21 +242,19 @@ def get_third_party_dependencies(
         for func_name in func_names:
             # Try the lang-specific version and fall back
             try:
-                func_info = util.registry.find(reg_name, lang + "." + func_name)
+                func_info = util.registry.find(reg_name, f"{lang}.{func_name}")
             except RegistryError:
                 try:
                     func_info = util.registry.find(reg_name, func_name)
                 except RegistryError as regerr:
                     # lang-specific version being absent is not actually an issue
                     raise regerr from None
-            module_name = func_info.get("module")  # type: ignore[attr-defined]
-            if module_name:  # the code is part of a module, not a --code file
+            if module_name := func_info.get("module"):
                 modules.add(func_info["module"].split(".")[0])  # type: ignore[union-attr]
     dependencies = []
     for module_name in modules:
         if module_name in distributions:
-            dist = distributions.get(module_name)
-            if dist:
+            if dist := distributions.get(module_name):
                 pkg = dist[0]
                 if pkg in own_packages or pkg in exclude:
                     continue
@@ -298,7 +295,7 @@ def get_meta(
         "license": "MIT",
     }
     nlp = util.load_model_from_path(Path(model_path))
-    meta.update(nlp.meta)
+    meta |= nlp.meta
     meta["spacy_version"] = util.get_minor_version_range(about.__version__)
     meta.update(existing_meta)
     meta["vectors"] = {
@@ -399,9 +396,9 @@ def _format_sources(data: Any) -> str:
             continue
         url = source.get("url")
         author = source.get("author")
-        result = name if not url else "[{}]({})".format(name, url)
+        result = f"[{name}]({url})" if url else name
         if author:
-            result += " ({})".format(author)
+            result += f" ({author})"
         sources.append(result)
     return "<br />".join(sources)
 

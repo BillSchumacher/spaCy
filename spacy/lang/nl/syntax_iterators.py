@@ -41,7 +41,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
 
     # Only NOUNS and PRONOUNS matter
     end_span = -1
-    for i, word in enumerate(filter(lambda x: x.pos in [PRON, NOUN], doclike)):
+    for word in filter(lambda x: x.pos in [PRON, NOUN], doclike):
         # For NOUNS
         # Pick children from syntactic parse (only those with certain dependencies)
         if word.pos == NOUN:

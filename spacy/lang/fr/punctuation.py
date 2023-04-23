@@ -7,9 +7,9 @@ from ..char_classes import merge_chars
 ELISION = "' ’".replace(" ", "")
 HYPHENS = r"- – — ‐ ‑".replace(" ", "")
 _prefixes_elision = "d l n"
-_prefixes_elision += " " + _prefixes_elision.upper()
+_prefixes_elision += f" {_prefixes_elision.upper()}"
 _hyphen_suffixes = "ce clés elle en il ils je là moi nous on t vous"
-_hyphen_suffixes += " " + _hyphen_suffixes.upper()
+_hyphen_suffixes += f" {_hyphen_suffixes.upper()}"
 
 
 _prefixes = TOKENIZER_PREFIXES + [

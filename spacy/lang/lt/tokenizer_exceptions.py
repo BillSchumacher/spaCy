@@ -3,11 +3,7 @@ from ...symbols import ORTH
 from ...util import update_exc
 
 
-_exc = {}
-
-for orth in ["n-tosios", "?!"]:
-    _exc[orth] = [{ORTH: orth}]
-
+_exc = {orth: [{ORTH: orth}] for orth in ["n-tosios", "?!"]}
 mod_base_exceptions = {
     exc: val for exc, val in BASE_EXCEPTIONS.items() if not exc.endswith(".")
 }

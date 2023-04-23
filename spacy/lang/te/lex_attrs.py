@@ -46,9 +46,7 @@ def like_num(text):
         num, denom = text.split("/")
         if num.isdigit() and denom.isdigit():
             return True
-    if text.lower() in _num_words:
-        return True
-    return False
+    return text.lower() in _num_words
 
 
 LEX_ATTRS = {LIKE_NUM: like_num}

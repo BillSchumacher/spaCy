@@ -17,11 +17,10 @@ class CatalanLemmatizer(Lemmatizer):
 
     @classmethod
     def get_lookups_config(cls, mode: str) -> Tuple[List[str], List[str]]:
-        if mode == "rule":
-            required = ["lemma_lookup", "lemma_rules", "lemma_exc", "lemma_index"]
-            return (required, [])
-        else:
+        if mode != "rule":
             return super().get_lookups_config(mode)
+        required = ["lemma_lookup", "lemma_rules", "lemma_exc", "lemma_index"]
+        return (required, [])
 
     def rule_lemmatize(self, token: Token) -> List[str]:
         cache_key = (token.orth, token.pos)

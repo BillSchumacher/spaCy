@@ -28,8 +28,9 @@ def validate_attrs(values: Iterable[str]) -> Iterable[str]:
         if obj_key == "span":
             # Support Span only for custom extension attributes
             span_attrs = [attr for attr in values if attr.startswith("span.")]
-            span_attrs = [attr for attr in span_attrs if not attr.startswith("span._.")]
-            if span_attrs:
+            if span_attrs := [
+                attr for attr in span_attrs if not attr.startswith("span._.")
+            ]:
                 raise ValueError(Errors.E180.format(attrs=", ".join(span_attrs)))
         if obj_key not in objs:  # first element is not doc/token/span
             invalid_attrs = ", ".join(a for a in values if a.startswith(obj_key))
@@ -39,7 +40,7 @@ def validate_attrs(values: Iterable[str]) -> Iterable[str]:
         for attr, value in attrs.items():
             if attr == "_":
                 if value is True:  # attr is something like "doc._"
-                    raise ValueError(Errors.E182.format(attr="{}._".format(obj_key)))
+                    raise ValueError(Errors.E182.format(attr=f"{obj_key}._"))
                 for ext_attr, ext_value in value.items():
                     # We don't check whether the attribute actually exists
                     if ext_value is not True:  # attr is something like doc._.x.y
@@ -125,10 +126,10 @@ def print_pipe_analysis(
     msg.divider("Pipeline Overview")
     header = ["#", "Component", *[key.capitalize() for key in keys]]
     summary: ItemsView = analysis["summary"].items()
-    body = [[i, n, *[v for v in m.values()]] for i, (n, m) in enumerate(summary)]
+    body = [[i, n, *list(m.values())] for i, (n, m) in enumerate(summary)]
     msg.table(body, header=header, divider=True, multiline=True)
     n_problems = sum(len(p) for p in analysis["problems"].values())
-    if any(p for p in analysis["problems"].values()):
+    if any(analysis["problems"].values()):
         msg.divider(f"Problems ({n_problems})")
         for name, problem in analysis["problems"].items():
             if problem:

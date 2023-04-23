@@ -169,9 +169,8 @@ class DocCleaner:
             if not skip:
                 if hasattr(obj, parts[-1]):
                     setattr(obj, parts[-1], value)
-                else:
-                    if not silent:
-                        warnings.warn(Warnings.W116.format(attr=attr))
+                elif not silent:
+                    warnings.warn(Warnings.W116.format(attr=attr))
         return doc
 
     def to_bytes(self, **kwargs):

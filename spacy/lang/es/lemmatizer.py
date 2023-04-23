@@ -12,11 +12,10 @@ class SpanishLemmatizer(Lemmatizer):
 
     @classmethod
     def get_lookups_config(cls, mode: str) -> Tuple[List[str], List[str]]:
-        if mode == "rule":
-            required = ["lemma_rules", "lemma_rules_groups", "lemma_index", "lemma_exc"]
-            return (required, [])
-        else:
+        if mode != "rule":
             return super().get_lookups_config(mode)
+        required = ["lemma_rules", "lemma_rules_groups", "lemma_index", "lemma_exc"]
+        return (required, [])
 
     def rule_lemmatize(self, token: Token) -> List[str]:
         cache_key = (token.orth, token.pos, str(token.morph))
@@ -38,25 +37,16 @@ class SpanishLemmatizer(Lemmatizer):
             "sym",
             "x",
         ):
-            if token.is_sent_start and pos != "propn":
-                return [string.lower()]
-            else:
-                return [string]
-
+            return [string.lower()] if token.is_sent_start and pos != "propn" else [string]
         string = string.lower()
         exc = self.lookups.get_table("lemma_exc").get(pos, {}).get(string)
         if exc is not None:
             lemmas = list(exc)
         else:
-            if pos == "aux":
-                rule_pos = "verb"
-            else:
-                rule_pos = pos
+            rule_pos = "verb" if pos == "aux" else pos
             rule = self.select_rule(rule_pos, list(features))
             index = self.lookups.get_table("lemma_index").get(rule_pos, [])
-            lemmas = getattr(self, "lemmatize_" + rule_pos)(
-                string, features, rule, index
-            )
+            lemmas = getattr(self, f"lemmatize_{rule_pos}")(string, features, rule, index)
             # Remove duplicates but preserve the ordering
             lemmas = list(dict.fromkeys(lemmas))
 
@@ -87,11 +77,9 @@ class SpanishLemmatizer(Lemmatizer):
 
         # Initialize empty lists for the generated lemmas
         possible_lemmas = []
-        selected_lemmas = []
-
         # Apply lemmatization rules
         for old, new in self.lookups.get_table("lemma_rules").get(rule, []):
-            possible_lemma = re.sub(old + "$", new, word)
+            possible_lemma = re.sub(f"{old}$", new, word)
             if possible_lemma != word:
                 possible_lemmas.append(possible_lemma)
 
@@ -101,18 +89,17 @@ class SpanishLemmatizer(Lemmatizer):
         if "Number=Plur" in features:
             for possible_lemma in possible_lemmas:
                 if possible_lemma.endswith("n") or possible_lemma.endswith("s"):
-                    for old, new in self.lookups.get_table("lemma_rules").get(
-                        "accents", []
-                    ):
-                        additional_lemmas.append(re.sub(old, new, possible_lemma))
+                    additional_lemmas.extend(
+                        re.sub(old, new, possible_lemma)
+                        for old, new in self.lookups.get_table("lemma_rules").get(
+                            "accents", []
+                        )
+                    )
         possible_lemmas.extend(additional_lemmas)
 
-        for lemma in possible_lemmas:
-            if lemma in index:
-                selected_lemmas.append(lemma)
-        # If one or more of the created possible lemmas are in the lookup list,
-        # return all of them
-        if len(selected_lemmas) > 0:
+        if selected_lemmas := [
+            lemma for lemma in possible_lemmas if lemma in index
+        ]:
             return selected_lemmas
         elif len(possible_lemmas) > 0:
             return possible_lemmas
@@ -133,13 +120,16 @@ class SpanishLemmatizer(Lemmatizer):
         RETURNS (List[str]): The list of lemmas.
         """
 
-        # Apply lemmatization rules
-        for old, new in self.lookups.get_table("lemma_rules").get("adverbs", []):
-            if word == old:
-                return [new]
-
-        # If none of the rules applies, return the original word
-        return [word]
+        return next(
+            (
+                [new]
+                for old, new in self.lookups.get_table("lemma_rules").get(
+                    "adverbs", []
+                )
+                if word == old
+            ),
+            [word],
+        )
 
     def lemmatize_det(
         self, word: str, features: List[str], rule: str, index: List[str]
@@ -177,20 +167,15 @@ class SpanishLemmatizer(Lemmatizer):
         for old, new in self.lookups.get_table("lemma_rules").get(
             "det_and_pron_general", []
         ):
-            possible_lemma = re.sub(old + "$", new, word)
+            possible_lemma = re.sub(f"{old}$", new, word)
             possible_lemmas.append(possible_lemma)
         possible_lemmas.append(word)
 
         if len(possible_lemmas) == 1:
             return possible_lemmas
         elif len(possible_lemmas) > 1:
-            for lemma in possible_lemmas:
-                if lemma in index:
-                    selected_lemmas.append(lemma)
-            if len(selected_lemmas) >= 1:
-                return selected_lemmas
-            else:
-                return possible_lemmas
+            selected_lemmas.extend(lemma for lemma in possible_lemmas if lemma in index)
+            return selected_lemmas if selected_lemmas else possible_lemmas
         else:
             return []
 
@@ -210,11 +195,9 @@ class SpanishLemmatizer(Lemmatizer):
 
         # Initialize empty lists for the generated lemmas
         possible_lemmas = []
-        selected_lemmas = []
-
         # Apply lemmatization rules
         for old, new in self.lookups.get_table("lemma_rules").get(rule, []):
-            possible_lemma = re.sub(old + "$", new, word)
+            possible_lemma = re.sub(f"{old}$", new, word)
             if possible_lemma != word:
                 possible_lemmas.append(possible_lemma)
 
@@ -224,18 +207,17 @@ class SpanishLemmatizer(Lemmatizer):
         if "Number=Plur" in features:
             for possible_lemma in possible_lemmas:
                 if possible_lemma.endswith("n") or possible_lemma.endswith("s"):
-                    for old, new in self.lookups.get_table("lemma_rules").get(
-                        "accents", []
-                    ):
-                        additional_lemmas.append(re.sub(old, new, possible_lemma))
+                    additional_lemmas.extend(
+                        re.sub(old, new, possible_lemma)
+                        for old, new in self.lookups.get_table("lemma_rules").get(
+                            "accents", []
+                        )
+                    )
         possible_lemmas.extend(additional_lemmas)
 
-        for lemma in possible_lemmas:
-            if lemma in index:
-                selected_lemmas.append(lemma)
-        # If one or more of the created possible lemmas are in the lookup list,
-        # return all of them
-        if len(selected_lemmas) > 0:
+        if selected_lemmas := [
+            lemma for lemma in possible_lemmas if lemma in index
+        ]:
             return selected_lemmas
         elif len(possible_lemmas) > 0:
             return possible_lemmas
@@ -306,7 +288,7 @@ class SpanishLemmatizer(Lemmatizer):
         for old, new in self.lookups.get_table("lemma_rules").get(
             "det_and_pron_general", []
         ):
-            possible_lemma = re.sub(old + "$", new, word)
+            possible_lemma = re.sub(f"{old}$", new, word)
             if possible_lemma != word:
                 possible_lemmas.append(possible_lemma)
         possible_lemmas.append(word)
@@ -314,13 +296,8 @@ class SpanishLemmatizer(Lemmatizer):
         if len(possible_lemmas) == 1:
             return possible_lemmas
         elif len(possible_lemmas) > 1:
-            for lemma in possible_lemmas:
-                if lemma in index:
-                    selected_lemmas.append(lemma)
-            if len(selected_lemmas) >= 1:
-                return selected_lemmas
-            else:
-                return possible_lemmas
+            selected_lemmas.extend(lemma for lemma in possible_lemmas if lemma in index)
+            return selected_lemmas if selected_lemmas else possible_lemmas
         else:
             return []
 
@@ -343,19 +320,15 @@ class SpanishLemmatizer(Lemmatizer):
 
         # Initialize empty lists for the generated lemmas
         possible_lemmas = []
-        selected_lemmas = []
-
         # Apply lemmatization rules
         rule = str(rule or "")
         for old, new in self.lookups.get_table("lemma_rules").get(rule, []):
-            possible_lemma = re.sub(old + "$", new, word)
+            possible_lemma = re.sub(f"{old}$", new, word)
             if possible_lemma != word:
                 possible_lemmas.append(possible_lemma)
 
-        for lemma in possible_lemmas:
-            if lemma in index:
-                selected_lemmas.append(lemma)
-        if len(selected_lemmas) == 0:
+        selected_lemmas = [lemma for lemma in possible_lemmas if lemma in index]
+        if not selected_lemmas:
             # If none of the possible lemmas are in the lookup list,
             # apply vocalic alternation rules and search in the lookup list
             # again
@@ -380,13 +353,17 @@ class SpanishLemmatizer(Lemmatizer):
         # e.g., amplían -> ampliar
         additional_lemmas = []
         for possible_lemma in possible_lemmas:
-            for old, new in self.lookups.get_table("lemma_rules").get("accents", []):
-                additional_lemmas.append(re.sub(old, new, possible_lemma))
+            additional_lemmas.extend(
+                re.sub(old, new, possible_lemma)
+                for old, new in self.lookups.get_table("lemma_rules").get(
+                    "accents", []
+                )
+            )
         possible_lemmas.extend(additional_lemmas)
 
         # If one or more of the created possible lemmas are in the lookup list,
         # return all of them
-        if len(selected_lemmas) > 0:
+        if selected_lemmas:
             return selected_lemmas
         elif len(possible_lemmas) > 0:
             return possible_lemmas
@@ -402,8 +379,8 @@ class SpanishLemmatizer(Lemmatizer):
         verb = word
         m = re.search(pron_patt, verb)
         while m is not None and len(prons) <= 3:
-            verb = re.sub(m.group(2) + "$", "", verb)
-            prons = [m.group(2)] + prons
+            verb = re.sub(f"{m[2]}$", "", verb)
+            prons = [m[2]] + prons
             m = re.search(pron_patt, verb)
         # Strip accents from verb form
         for old, new in self.lookups.get_table("lemma_rules").get("accents", []):
@@ -425,4 +402,4 @@ class SpanishLemmatizer(Lemmatizer):
             else:
                 rule = self.select_rule("pron", features)
                 pron_lemmas.append(self.lemmatize_pron(pron, features, rule, index)[0])
-        return [verb_lemma + " " + " ".join(pron_lemmas)]
+        return [f"{verb_lemma} " + " ".join(pron_lemmas)]

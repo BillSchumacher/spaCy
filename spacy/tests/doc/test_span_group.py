@@ -18,11 +18,10 @@ def doc(en_tokenizer):
     matcher.add("1", [[{}, ]])
     # fmt: on
     matches = matcher(doc)
-    spans = []
-    for match in matches:
-        spans.append(
-            Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
-        )
+    spans = [
+        Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
+        for match in matches
+    ]
     Random(42).shuffle(spans)
     doc.spans["SPANS"] = SpanGroup(
         doc, name="SPANS", attrs={"key": "value"}, spans=spans
@@ -42,11 +41,10 @@ def other_doc(en_tokenizer):
     # fmt: on
 
     matches = matcher(doc)
-    spans = []
-    for match in matches:
-        spans.append(
-            Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
-        )
+    spans = [
+        Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
+        for match in matches
+    ]
     Random(42).shuffle(spans)
     doc.spans["SPANS"] = SpanGroup(
         doc, name="SPANS", attrs={"key": "value"}, spans=spans
@@ -66,11 +64,10 @@ def span_group(en_tokenizer):
     # fmt: on
 
     matches = matcher(doc)
-    spans = []
-    for match in matches:
-        spans.append(
-            Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
-        )
+    spans = [
+        Span(doc, match[1], match[2], en_tokenizer.vocab.strings[match[0]])
+        for match in matches
+    ]
     Random(42).shuffle(spans)
     doc.spans["SPANS"] = SpanGroup(
         doc, name="SPANS", attrs={"key": "value"}, spans=spans
@@ -129,7 +126,7 @@ def test_span_group_has_overlap(doc):
 
 def test_span_group_concat(doc, other_doc):
     span_group_1 = doc.spans["SPANS"]
-    spans = [doc[0:5], doc[0:6]]
+    spans = [doc[:5], doc[:6]]
     span_group_2 = SpanGroup(
         doc,
         name="MORE_SPANS",
@@ -174,7 +171,7 @@ def test_span_doc_delitem(doc):
 
 def test_span_group_add(doc):
     span_group_1 = doc.spans["SPANS"]
-    spans = [doc[0:5], doc[0:6]]
+    spans = [doc[:5], doc[:6]]
     span_group_2 = SpanGroup(
         doc,
         name="MORE_SPANS",
@@ -192,7 +189,7 @@ def test_span_group_add(doc):
 
 def test_span_group_iadd(doc):
     span_group_1 = doc.spans["SPANS"].copy()
-    spans = [doc[0:5], doc[0:6]]
+    spans = [doc[:5], doc[:6]]
     span_group_2 = SpanGroup(
         doc,
         name="MORE_SPANS",
@@ -218,7 +215,7 @@ def test_span_group_iadd(doc):
 
 def test_span_group_extend(doc):
     span_group_1 = doc.spans["SPANS"].copy()
-    spans = [doc[0:5], doc[0:6]]
+    spans = [doc[:5], doc[:6]]
     span_group_2 = SpanGroup(
         doc,
         name="MORE_SPANS",

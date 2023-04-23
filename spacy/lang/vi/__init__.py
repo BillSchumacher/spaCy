@@ -53,10 +53,10 @@ class VietnameseTokenizer(DummyTokenizer):
         if self.use_pyvi:
             words = self.pyvi_tokenize(text)
             words, spaces = util.get_words_and_spaces(words, text)
-            return Doc(self.vocab, words=words, spaces=spaces)
         else:
             words, spaces = util.get_words_and_spaces(text.split(), text)
-            return Doc(self.vocab, words=words, spaces=spaces)
+
+        return Doc(self.vocab, words=words, spaces=spaces)
 
     # The methods pyvi_sylabelize_with_ws and pyvi_tokenize are adapted from
     # pyvi v0.1, MIT License, Copyright (c) 2016 Viet-Trung Tran.
@@ -80,12 +80,9 @@ class VietnameseTokenizer(DummyTokenizer):
             r"ThS\.",
         ]
 
-        patterns = []
-        patterns.extend(abbreviations)
+        patterns = list(abbreviations)
         patterns.extend(specials)
-        patterns.extend([web, email])
-        patterns.extend([digit, non_word, word])
-
+        patterns.extend([web, email, digit, non_word, word])
         patterns = r"(\s+|" + "|".join(patterns) + ")"
         tokens = re.findall(patterns, text, re.UNICODE)
 
@@ -118,7 +115,7 @@ class VietnameseTokenizer(DummyTokenizer):
                 and words[i - 1] not in string.punctuation
                 and not words[i][0].isdigit()
                 and not words[i - 1][0].isdigit()
-                and not (words[i][0].istitle() and not words[i - 1][0].istitle())
+                and (not words[i][0].istitle() or words[i - 1][0].istitle())
             ):
                 token = token + preceding_ws[i] + words[i]
             else:

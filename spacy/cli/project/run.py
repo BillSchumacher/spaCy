@@ -77,10 +77,13 @@ def project_run(
     validate_subcommand(list(commands.keys()), list(workflows.keys()), subcommand)
 
     req_path = project_dir / "requirements.txt"
-    if not skip_requirements_check:
-        if config.get("check_requirements", True) and os.path.exists(req_path):
-            with req_path.open() as requirements_file:
-                _check_requirements([req.strip() for req in requirements_file])
+    if (
+        not skip_requirements_check
+        and config.get("check_requirements", True)
+        and os.path.exists(req_path)
+    ):
+        with req_path.open() as requirements_file:
+            _check_requirements([req.strip() for req in requirements_file])
 
     if subcommand in workflows:
         msg.info(f"Running workflow '{subcommand}'")
@@ -100,7 +103,7 @@ def project_run(
             if not (project_dir / dep).exists():
                 err = f"Missing dependency specified by command '{subcommand}': {dep}"
                 err_help = "Maybe you forgot to run the 'project assets' command or a previous step?"
-                err_exits = 1 if not dry else None
+                err_exits = None if dry else 1
                 msg.fail(err, err_help, exits=err_exits)
         check_spacy_commit = check_bool_env_var(ENV_VARS.PROJECT_USE_GIT_VERSION)
         with working_dir(project_dir) as current_dir:
@@ -131,8 +134,7 @@ def print_run_help(project_dir: Path, subcommand: Optional[str] = None) -> None:
         validate_subcommand(list(commands.keys()), list(workflows.keys()), subcommand)
         print(f"Usage: {COMMAND} project run {subcommand} {project_loc}")
         if subcommand in commands:
-            help_text = commands[subcommand].get("help")
-            if help_text:
+            if help_text := commands[subcommand].get("help"):
                 print(f"\n{help_text}\n")
         elif subcommand in workflows:
             steps = workflows[subcommand]
@@ -146,8 +148,7 @@ def print_run_help(project_dir: Path, subcommand: Optional[str] = None) -> None:
             print(f"For command details, run: {help_cmd}")
     else:
         print("")
-        title = config.get("title")
-        if title:
+        if title := config.get("title"):
             print(f"{locale_escape(title)}\n")
         if config_commands:
             print(f"Available commands in {PROJECT_FILE}")
@@ -207,7 +208,7 @@ def validate_subcommand(
         msg.fail(f"No commands or workflows defined in {PROJECT_FILE}", exits=1)
     if subcommand not in commands and subcommand not in workflows:
         help_msg = []
-        if subcommand in ["assets", "asset"]:
+        if subcommand in {"assets", "asset"}:
             help_msg.append("Did you mean to run: python -m spacy project assets?")
         if commands:
             help_msg.append(f"Available commands: {', '.join(commands)}")

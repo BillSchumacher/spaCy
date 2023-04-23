@@ -64,9 +64,8 @@ def create_models_with_nvtx_range(
 def nvtx_range_wrapper_for_pipe_method(self, func, *args, **kwargs):
     if isinstance(func, functools.partial):
         return func(*args, **kwargs)
-    else:
-        with use_nvtx_range(f"{self.name} {func.__name__}"):
-            return func(*args, **kwargs)
+    with use_nvtx_range(f"{self.name} {func.__name__}"):
+        return func(*args, **kwargs)
 
 
 def pipes_with_nvtx_range(

@@ -76,10 +76,7 @@ def project_assets(
         dest = (project_dir / asset["dest"]).resolve()
         checksum = asset.get("checksum")
         if "git" in asset:
-            git_err = (
-                f"Cloning spaCy project templates requires Git and the 'git' command. "
-                f"Make sure it's installed and that the executable is available."
-            )
+            git_err = "Cloning spaCy project templates requires Git and the 'git' command. Make sure it's installed and that the executable is available."
             get_git_version(error=git_err)
             if dest.exists():
                 # If there's already a file, check for checksum
@@ -129,13 +126,12 @@ def check_private_asset(dest: Path, checksum: Optional[str] = None) -> None:
     if not Path(dest).exists():
         err = f"No URL provided for asset. You need to add this file yourself: {dest}"
         msg.warn(err)
+    elif not checksum:
+        msg.good(f"Asset already exists: {dest}")
+    elif checksum == get_checksum(dest):
+        msg.good(f"Asset exists with matching checksum: {dest}")
     else:
-        if not checksum:
-            msg.good(f"Asset already exists: {dest}")
-        elif checksum == get_checksum(dest):
-            msg.good(f"Asset exists with matching checksum: {dest}")
-        else:
-            msg.fail(f"Asset available but with incorrect checksum: {dest}")
+        msg.fail(f"Asset available but with incorrect checksum: {dest}")
 
 
 def fetch_asset(
@@ -157,11 +153,9 @@ def fetch_asset(
             if checksum == get_checksum(dest_path):
                 msg.good(f"Skipping download with matching checksum: {dest}")
                 return
-        else:
-            # If there's not a checksum, make sure the file is a possibly valid size
-            if os.path.getsize(dest_path) == 0:
-                msg.warn(f"Asset exists but with size of 0 bytes, deleting: {dest}")
-                os.remove(dest_path)
+        elif os.path.getsize(dest_path) == 0:
+            msg.warn(f"Asset exists but with size of 0 bytes, deleting: {dest}")
+            os.remove(dest_path)
     # We might as well support the user here and create parent directories in
     # case the asset dir isn't listed as a dir to create in the project.yml
     if not dest_path.parent.exists():

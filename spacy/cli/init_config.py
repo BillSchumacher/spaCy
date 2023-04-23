@@ -220,8 +220,8 @@ def save_config(
         config.to_disk(output_file, interpolate=False)
         msg.good("Saved config", output_file)
         msg.text("You can now add your data and train your pipeline:")
-        variables = ["--paths.train ./train.spacy", "--paths.dev ./dev.spacy"]
         if not no_print:
+            variables = ["--paths.train ./train.spacy", "--paths.dev ./dev.spacy"]
             print(f"{COMMAND} train {output_file.parts[-1]} {' '.join(variables)}")
 
 

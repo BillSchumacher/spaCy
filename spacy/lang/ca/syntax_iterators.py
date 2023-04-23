@@ -15,7 +15,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
     np_deps = [doc.vocab.strings[label] for label in labels]
     np_label = doc.vocab.strings.add("NP")
     prev_end = -1
-    for i, word in enumerate(doclike):
+    for word in doclike:
         if word.pos not in (NOUN, PROPN):
             continue
         # Prevent nested chunks from being produced
@@ -25,7 +25,7 @@ def noun_chunks(doclike: Union[Doc, Span]) -> Iterator[Tuple[int, int, int]]:
             left = word.left_edge.i
             right = word.right_edge.i + 1
             # leave prepositions and punctuation out of the left side of the chunk
-            if word.left_edge.pos_ == "ADP" or word.left_edge.pos_ == "PUNCT":
+            if word.left_edge.pos_ in ["ADP", "PUNCT"]:
                 left = word.left_edge.i + 1
             prev_end = word.right_edge.i
             # leave subordinated clauses and appositions out of the chunk

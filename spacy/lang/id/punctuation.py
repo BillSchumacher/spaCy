@@ -2,12 +2,6 @@ from ..punctuation import TOKENIZER_PREFIXES, TOKENIZER_SUFFIXES, TOKENIZER_INFI
 from ..char_classes import ALPHA, merge_chars, split_chars, _currency, _units
 
 
-_units = (
-    _units + "s bit Gbps Mbps mbps Kbps kbps ƒ ppi px "
-    "Hz kHz MHz GHz mAh "
-    "ratus rb ribu ribuan "
-    "juta jt jutaan mill?iar million bil[l]?iun bilyun billion "
-)
 _currency = _currency + r" USD Rp IDR RMB SGD S\$"
 _months = (
     "Januari Februari Maret April Mei Juni Juli Agustus September "
@@ -17,6 +11,7 @@ _months = (
 )
 
 
+_units = f"{_units}s bit Gbps Mbps mbps Kbps kbps ƒ ppi px Hz kHz MHz GHz mAh ratus rb ribu ribuan juta jt jutaan mill?iar million bil[l]?iun bilyun billion "
 UNITS = merge_chars(_units)
 CURRENCY = merge_chars(_currency)
 HTML_PREFIX = r"<(b|strong|i|em|p|span|div|br)\s?/>|<a([^>]+)>"

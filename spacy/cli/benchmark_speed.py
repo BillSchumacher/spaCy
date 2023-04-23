@@ -42,7 +42,7 @@ def benchmark_speed_cli(
     corpus = Corpus(data_path)
     docs = [eg.predicted for eg in corpus(nlp)]
 
-    if len(docs) == 0:
+    if not docs:
         msg.fail("Cannot benchmark speed using an empty corpus.", exits=1)
 
     print(f"Warming up for {warmup_epochs} epochs...")
@@ -95,7 +95,7 @@ def annotate(
             batch_docs = list(
                 islice(docs, batch_size if batch_size else nlp.batch_size)
             )
-        if len(batch_docs) == 0:
+        if not batch_docs:
             break
         n_tokens = count_tokens(batch_docs)
         wps.append(n_tokens / elapsed.elapsed)
@@ -170,5 +170,5 @@ def print_outliers(sample: numpy.ndarray):
 def warmup(
     nlp: Language, docs: List[Doc], warmup_epochs: int, batch_size: Optional[int]
 ) -> numpy.ndarray:
-    docs = warmup_epochs * docs
+    docs *= warmup_epochs
     return annotate(nlp, docs, batch_size)

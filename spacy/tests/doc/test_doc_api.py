@@ -51,12 +51,12 @@ def test_issue1757():
     """Test comparison against None doesn't cause segfault."""
     doc = Doc(Vocab(), words=["a", "b", "c"])
     assert not doc[0] < None
-    assert not doc[0] is None
+    assert doc[0] is not None
     assert doc[0] >= None
     assert not doc[:2] < None
-    assert not doc[:2] is None
+    assert doc[:2] is not None
     assert doc[:2] >= None
-    assert not doc.vocab["a"] is None
+    assert doc.vocab["a"] is not None
     assert not doc.vocab["a"] < None
 
 
@@ -123,9 +123,7 @@ def test_issue3869(sentence):
     """Test that the Doc's count_by function works consistently"""
     nlp = English()
     doc = nlp(sentence)
-    count = 0
-    for token in doc:
-        count += token.is_alpha
+    count = sum(token.is_alpha for token in doc)
     assert count == doc.count_by(IS_ALPHA).get(1, 0)
 
 
@@ -233,8 +231,8 @@ def test_issue4903():
     nlp = English()
     nlp.add_pipe("sentencizer")
     nlp.add_pipe("my_pipe", after="sentencizer")
-    text = ["I like bananas.", "Do you like them?", "No, I prefer wasabi."]
     if isinstance(get_current_ops(), NumpyOps):
+        text = ["I like bananas.", "Do you like them?", "No, I prefer wasabi."]
         docs = list(nlp.pipe(text, n_process=2))
         assert docs[0].text == "I like bananas."
         assert docs[1].text == "Do you like them?"
@@ -411,7 +409,7 @@ def test_doc_api_set_ents(en_tokenizer):
 def test_doc_api_sents_empty_string(en_tokenizer):
     doc = en_tokenizer("")
     sents = list(doc.sents)
-    assert len(sents) == 0
+    assert not sents
 
 
 def test_doc_api_runtime_error(en_tokenizer):
@@ -592,9 +590,9 @@ def test_doc_api_from_docs(en_tokenizer, de_tokenizer):
     en_docs = [en_tokenizer(text) for text in en_texts]
     en_docs[0].spans["group"] = [en_docs[0][1:4]]
     en_docs[2].spans["group"] = [en_docs[2][1:4]]
-    en_docs[4].spans["group"] = [en_docs[4][0:1]]
+    en_docs[4].spans["group"] = [en_docs[4][:1]]
     span_group_texts = sorted(
-        [en_docs[0][1:4].text, en_docs[2][1:4].text, en_docs[4][0:1].text]
+        [en_docs[0][1:4].text, en_docs[2][1:4].text, en_docs[4][:1].text]
     )
     de_doc = de_tokenizer(de_text)
     Token.set_extension("is_ambiguous", default=False)
@@ -619,7 +617,7 @@ def test_doc_api_from_docs(en_tokenizer, de_tokenizer):
     assert m_doc[2]._.is_ambiguous is True
     assert m_doc[9].idx == think_idx
     assert m_doc[9]._.is_ambiguous is True
-    assert not any([t._.is_ambiguous for t in m_doc[3:8]])
+    assert not any(t._.is_ambiguous for t in m_doc[3:8])
     assert "group" in m_doc.spans
     assert span_group_texts == sorted([s.text for s in m_doc.spans["group"]])
     assert bool(m_doc[11].whitespace_)
@@ -961,7 +959,7 @@ def test_span_groups(en_tokenizer):
     assert "bye" not in doc.spans
     assert len(doc.spans["hi"]) == 1
     assert doc.spans["hi"][0].label_ == "bye"
-    doc.spans["hi"].append(doc[0:3])
+    doc.spans["hi"].append(doc[:3])
     assert len(doc.spans["hi"]) == 2
     assert doc.spans["hi"][1].text == "Some text about"
     assert [span.text for span in doc.spans["hi"]] == ["Colombia", "Some text about"]
@@ -986,7 +984,7 @@ def test_doc_spans_setdefault(en_tokenizer):
     doc = en_tokenizer("Some text about Colombia and the Czech Republic")
     doc.spans.setdefault("key1")
     assert len(doc.spans["key1"]) == 0
-    doc.spans.setdefault("key2", default=[doc[0:1]])
+    doc.spans.setdefault("key2", default=[doc[:1]])
     assert len(doc.spans["key2"]) == 1
-    doc.spans.setdefault("key3", default=SpanGroup(doc, spans=[doc[0:1], doc[1:2]]))
+    doc.spans.setdefault("key3", default=SpanGroup(doc, spans=[doc[:1], doc[1:2]]))
     assert len(doc.spans["key3"]) == 2

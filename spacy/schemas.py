@@ -132,7 +132,7 @@ def validate_init_settings(
     try:
         return schema(**settings).dict()
     except ValidationError as e:
-        block = "initialize" if not section else f"initialize.{section}"
+        block = f"initialize.{section}" if section else "initialize"
         title = f"Error validating initialization settings in [{block}]"
         raise ConfigValidationError(
             title=title, errors=e.errors(), config=settings, parent=name

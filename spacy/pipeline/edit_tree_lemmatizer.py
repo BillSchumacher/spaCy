@@ -307,8 +307,8 @@ class EditTreeLemmatizer(TrainablePipe):
             label_sample.append(self.model.ops.asarray(gold_labels, dtype="float32"))
 
         self._require_labels()
-        assert len(doc_sample) > 0, Errors.E923.format(name=self.name)
-        assert len(label_sample) > 0, Errors.E923.format(name=self.name)
+        assert doc_sample, Errors.E923.format(name=self.name)
+        assert label_sample, Errors.E923.format(name=self.name)
 
         self.model.initialize(X=doc_sample, Y=label_sample)
 
@@ -371,8 +371,7 @@ class EditTreeLemmatizer(TrainablePipe):
         self.cfg["labels"] = list(labels["labels"])
         trees = []
         for tree in labels["trees"]:
-            errors = validate_edit_tree(tree)
-            if errors:
+            if errors := validate_edit_tree(tree):
                 raise ValueError(Errors.E1026.format(errors="\n".join(errors)))
 
             tree = dict(tree)

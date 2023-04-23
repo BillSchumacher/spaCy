@@ -7,11 +7,10 @@ from ...tokens import Token
 class DutchLemmatizer(Lemmatizer):
     @classmethod
     def get_lookups_config(cls, mode: str) -> Tuple[List[str], List[str]]:
-        if mode == "rule":
-            required = ["lemma_lookup", "lemma_rules", "lemma_exc", "lemma_index"]
-            return (required, [])
-        else:
+        if mode != "rule":
             return super().get_lookups_config(mode)
+        required = ["lemma_lookup", "lemma_rules", "lemma_exc", "lemma_index"]
+        return (required, [])
 
     def lookup_lemmatize(self, token: Token) -> List[str]:
         """Overrides parent method so that a lowercased version of the string
@@ -107,16 +106,10 @@ class DutchLemmatizer(Lemmatizer):
                     return forms
             if looked_up_lemma:
                 forms = [looked_up_lemma]
-                self.cache[cache_key] = forms
-                return forms
-            else:
-                self.cache[cache_key] = forms
-                return forms
         elif looked_up_lemma:
             forms = [looked_up_lemma]
-            self.cache[cache_key] = forms
-            return forms
         else:
             forms = [string]
-            self.cache[cache_key] = forms
-            return forms
+
+        self.cache[cache_key] = forms
+        return forms
